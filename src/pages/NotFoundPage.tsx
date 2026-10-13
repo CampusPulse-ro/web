@@ -7,7 +7,9 @@ export function NotFoundPage() {
     <section>
       <h1 className="m-0 text-2xl font-semibold">{t('notFound.title')}</h1>
       <p className="mt-3 text-ink-muted">
+        {/* t={t}: <Trans> re-renders on a language switch only through useTranslation()'s t. */}
         <Trans
+          t={t}
           i18nKey="notFound.body"
           components={{ home: <Link to="/" className="text-accent underline" /> }}
         />

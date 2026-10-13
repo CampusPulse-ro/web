@@ -68,10 +68,15 @@ the same for everyone.
 - **Styling uses Tailwind classes built from our tokens** (`bg-page`, `text-ink-muted`,
   `border-line`, `text-accent`…). No hex colors in components and no arbitrary values like
   `bg-[#123456]`. That keeps a later light theme (or any palette change) a one-file change.
-- **No user-facing text written directly in components.** Add a key to both `src/i18n/en.json`
-  and `src/i18n/ro.json` and show it with `t('key')` from `useTranslation()`; a key missing from
-  `ro.json` or a mistyped key fails the build. English is the default. Dates and times go
-  through `useDateTimeFormat()` from `src/i18n/format.ts`, so they follow the chosen language.
+- **No user-facing text written directly in components**, props included (`aria-label`, `alt`,
+  `title`, `placeholder`). Add a key to both `src/i18n/en.json` and `src/i18n/ro.json` and show it
+  with `t('key')` from `useTranslation()`; lint fails on text written straight into JSX
+  (`react/jsx-no-literals`). A sentence with a link uses `<Trans t={t} …>` (see `NotFoundPage`):
+  without `t={t}` it doesn't switch language. A missing or misspelled key fails `bun run build` and
+  CI and is underlined in the editor, but the dev server just shows the English text or the raw
+  key, so check the build. Romanian uses ș and ț with a comma below, never ş and ţ with a cedilla.
+  English is the default. Dates and times go through `useDateTimeFormat()` from
+  `src/i18n/format.ts`: they follow the chosen language and show in campus time (Europe/Bucharest).
 - **Every page that loads data shows four states:** loading, error (with a way to retry), empty,
   and the data.
 - **Responsive:** check every page at phone width (375px) and on a desktop width.

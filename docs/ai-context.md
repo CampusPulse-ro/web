@@ -40,10 +40,13 @@ plain words. Keep each change small enough to read and test in a few minutes.
    `bg-[#123456]`. A new color is added to `@theme` in `src/index.css`, not inline.
 3. **Pages that load data handle four states:** loading, error with retry, empty, and data.
 4. **Responsive:** it must work at 375px wide and on desktop.
-5. **No user-facing text written directly in a component.** Every text is a key in both
-   `src/i18n/en.json` and `src/i18n/ro.json` (correct Romanian, with ș ț ă î â), shown with
-   `t('key')` from `useTranslation()`; use `<Trans>` when a sentence contains a link. Dates and
-   times use `useDateTimeFormat()` from `src/i18n/format.ts`.
+5. **No user-facing text written directly in a component**, props included (`aria-label`, `alt`,
+   `title`, `placeholder`). Every text is a key in both `src/i18n/en.json` and `src/i18n/ro.json`,
+   shown with `t('key')` from `useTranslation()`; lint rejects literal JSX text. A sentence with a
+   link uses `<Trans t={t} …>` with `t` from `useTranslation()`, as in `NotFoundPage`, or it won't
+   switch language. Correct Romanian with diacritics: ș and ț with a **comma below**, never ş and ţ
+   with a cedilla (the old Windows keyboard and many AIs produce the cedilla ones; CI rejects them).
+   Dates and times use `useDateTimeFormat()` from `src/i18n/format.ts` (campus time).
 6. **No new packages unless I ask.** If one is truly needed, say so and why.
 7. **The backend is called only through the generated API client.** Never `fetch` with a URL written
    by hand. If the client or the endpoint you need doesn't exist yet, say so; do not invent one.
