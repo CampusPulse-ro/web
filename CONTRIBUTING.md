@@ -40,20 +40,22 @@ One issue = one PR = one thing. If it grows past roughly 300 changed lines, spli
 
 ## Where things go
 
-| Path | What goes there |
-|---|---|
-| `src/main.tsx` | The routes (React Router). A new page is added here |
-| `src/pages/` | One file per page, named `<Name>Page.tsx` |
-| `src/components/` | Pieces used by more than one page |
-| `src/Layout.tsx` | The frame around every page (header, footer) |
-| `src/index.css` | Tailwind and the design tokens (`@theme`). The only place colors are defined |
-| `public/` | Files served as they are (favicon, `_redirects`) |
+| Path              | What goes there                                                              |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `src/main.tsx`    | The routes (React Router). A new page is added here                          |
+| `src/pages/`      | One file per page, named `<Name>Page.tsx`                                    |
+| `src/components/` | Pieces used by more than one page                                            |
+| `src/Layout.tsx`  | The frame around every page (header, footer)                                 |
+| `src/index.css`   | Tailwind and the design tokens (`@theme`). The only place colors are defined |
+| `public/`         | Files served as they are (favicon, `_redirects`)                             |
 
 A new top-level folder (for example `src/api/` or `src/hooks/`): ask first, so the structure stays
 the same for everyone.
 
 ## Code standards
 
+- **Run `bun run format` before committing.** Prettier formats everything the same way, so diffs show
+  only real changes; CI fails on unformatted files.
 - **TypeScript stays strict.** No `any`, no `@ts-ignore`, no turning off lint rules. If the types
   fight you, that's a question to ask, not a rule to switch off.
 - **Styling uses Tailwind classes built from our tokens** (`bg-page`, `text-ink-muted`,
@@ -73,6 +75,7 @@ the same for everyone.
 ## Before you open a PR
 
 ```bash
+bun run format:check
 bun run lint
 bun run build
 ```

@@ -28,6 +28,10 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      # Prettier: fails when a file isn't formatted. Fix locally with `bun run format`.
+      - name: Format
+        run: bun run format:check
+
       # tsc runs as part of build (`tsc -b && vite build`), so a type error fails here too.
       - name: Build
         run: bun run build

@@ -8,8 +8,8 @@ export function PrivacyPage() {
         <DraftNotice />
       </div>
       <p className="mt-6 text-ink-soft">
-        This page will describe what data CampusPulse collects, why, where it is stored, how long it is
-        kept, and how to contact us. Google Play requires it before the app can be published.
+        This page will describe what data CampusPulse collects, why, where it is stored, how long it
+        is kept, and how to contact us. Google Play requires it before the app can be published.
       </p>
     </section>
   )

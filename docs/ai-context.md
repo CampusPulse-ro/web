@@ -15,19 +15,19 @@ plain words. Keep each change small enough to read and test in a few minutes.
 - **Three repositories:** `api` (the .NET backend, not edited from here), `mobile` (the Expo app)
   and `web` (this one).
 - **This repo:** the landing page and the web version of the app. React 19, Vite, TypeScript in
-  strict mode, Tailwind CSS v4, React Router, Bun as package manager, oxlint for linting. Deployed
+  strict mode, Tailwind CSS v4, React Router, Bun as package manager, oxlint for linting, Prettier for formatting. Deployed
   as a static single-page app on Cloudflare Pages.
 
 ## Structure
 
-| Path | What |
-|---|---|
-| `src/main.tsx` | Routes: `/` landing, `/app` web app, `/privacy`, `/account-deletion`, `*` not found |
-| `src/pages/` | One component per page, `<Name>Page.tsx` |
-| `src/components/` | Shared components |
-| `src/Layout.tsx` | Header/footer frame around every page |
-| `src/index.css` | Tailwind import and design tokens in `@theme` (`--color-page`, `--color-ink`…) |
-| `public/_redirects` | Cloudflare Pages fallback so client routes work on reload |
+| Path                | What                                                                                |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| `src/main.tsx`      | Routes: `/` landing, `/app` web app, `/privacy`, `/account-deletion`, `*` not found |
+| `src/pages/`        | One component per page, `<Name>Page.tsx`                                            |
+| `src/components/`   | Shared components                                                                   |
+| `src/Layout.tsx`    | Header/footer frame around every page                                               |
+| `src/index.css`     | Tailwind import and design tokens in `@theme` (`--color-page`, `--color-ink`…)      |
+| `public/_redirects` | Cloudflare Pages fallback so client routes work on reload                           |
 
 ## Rules for your answers
 
@@ -49,5 +49,7 @@ plain words. Keep each change small enough to read and test in a few minutes.
 10. **Never put secrets in code.** Everything in this app is public in the browser.
 11. **Don't change** `vite.config.ts`, `tsconfig*.json`, `.github/`, `public/_redirects` or package
     versions. Those belong to Sebastian; tell me if a change there seems needed.
-12. **End every answer with how to check it works:** what to run, which URL to open, what I should
+12. **Write code the way Prettier formats it** (`.prettierrc.json`: no semicolons, single quotes, 100
+    columns); I run `bun run format` before committing.
+13. **End every answer with how to check it works:** what to run, which URL to open, what I should
     see.

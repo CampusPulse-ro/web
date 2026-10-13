@@ -17,35 +17,37 @@ and the backend in [`api`](https://github.com/CampusPulse-ro/api).
 
 ```bash
 bun install
-bun dev            # http://localhost:5173
+bun dev              # http://localhost:5173
 ```
 
 ```bash
-bun run build      # tsc -b && vite build  -> dist/
-bun run preview    # serve the production build locally
-bun run lint       # oxlint
+bun run build        # tsc -b && vite build  -> dist/
+bun run preview      # serve the production build locally
+bun run lint         # oxlint
+bun run format       # prettier, rewrites files
+bun run format:check # what CI runs
 ```
 
-CI (`.github/workflows/ci.yml`) runs lint and build on every PR and on pushes to `main`.
+CI (`.github/workflows/ci.yml`) runs lint, the format check and build on every PR and on pushes to `main`.
 
 ## Layout
 
-| Path | What |
-|---|---|
-| `src/main.tsx` | Routes (React Router) |
-| `src/pages/` | One component per page |
-| `src/components/` | Shared components |
-| `src/Layout.tsx` | Header and footer around every page |
-| `src/index.css` | Tailwind and the design tokens (`@theme`), same names and values as the mobile app |
-| `public/` | Served as is: favicon, `_redirects` |
+| Path              | What                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `src/main.tsx`    | Routes (React Router)                                                              |
+| `src/pages/`      | One component per page                                                             |
+| `src/components/` | Shared components                                                                  |
+| `src/Layout.tsx`  | Header and footer around every page                                                |
+| `src/index.css`   | Tailwind and the design tokens (`@theme`), same names and values as the mobile app |
+| `public/`         | Served as is: favicon, `_redirects`                                                |
 
 ## Routes
 
-| Path | What |
-|---|---|
-| `/` | landing page (placeholder) |
-| `/app` | the web app (placeholder) |
-| `/privacy` | privacy policy (draft; Google Play needs this URL) |
+| Path                | What                                                           |
+| ------------------- | -------------------------------------------------------------- |
+| `/`                 | landing page (placeholder)                                     |
+| `/app`              | the web app (placeholder)                                      |
+| `/privacy`          | privacy policy (draft; Google Play needs this URL)             |
 | `/account-deletion` | how to delete your account (draft; Google Play needs this URL) |
 
 ## Deploying

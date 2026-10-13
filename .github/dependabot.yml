@@ -1,0 +1,20 @@
+# Weekly dependency updates, one grouped PR per ecosystem. Security fixes come separately, as
+# soon as an advisory is published (repo setting).
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dependencies:
+        patterns: ['*']
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
