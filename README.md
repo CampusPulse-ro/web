@@ -12,6 +12,11 @@ and the backend in [`api`](https://github.com/CampusPulse-ro/api).
 
 - [Bun](https://bun.sh) (the package manager and script runner)
 - Git, and a GitHub account with access to the `CampusPulse-ro` org
+- VS Code (recommended): accept the suggested extensions, Prettier and EditorConfig
+  (`.vscode/extensions.json`), so files are formatted on save the same way CI checks them.
+
+**Cloned on Windows before line endings were fixed (repo hygiene, #5)?** Your files may have CRLF
+endings on disk. Run `bun run format`, or delete the folder and clone again.
 
 ## Running it
 

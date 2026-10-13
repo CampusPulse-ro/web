@@ -7,8 +7,13 @@ updates:
     schedule:
       interval: weekly
     groups:
+      prettier:
+        patterns: ['prettier*']
       dependencies:
         patterns: ['*']
+        exclude-patterns: ['prettier*']
+        # Majors come as separate PRs: they are the ones that break things.
+        update-types: ['minor', 'patch']
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions

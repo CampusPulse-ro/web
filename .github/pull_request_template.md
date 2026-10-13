@@ -10,6 +10,6 @@ Closes #
 
 ## Checklist
 
-- [ ] `bun run lint` and `bun run build` pass
+- [ ] `bun run format:check`, `bun run lint` and `bun run build` pass
 - [ ] every page I touched checked at phone and desktop width, including loading, error and empty states
 - [ ] I can explain every line of this diff

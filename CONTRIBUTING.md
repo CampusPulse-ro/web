@@ -29,8 +29,8 @@ All issues of the three repos are on the [CampusPulse board](https://github.com/
    - **Why**
    - **How I tested it**: which browser, at which widths, and a screenshot for anything visible
 6. The card moves to **In Review** by itself once the PR says `Closes #<n>`, and to **Done**
-   when it's merged. CI has to be green (lint and build), and a PR needs one approval: Sebastian
-   reviews.
+   when it's merged. CI has to be green (format check, lint and build), and a PR needs one approval:
+   Sebastian reviews.
 7. Merging is **squash only**: the whole PR becomes one commit on `main`, titled with the PR
    title. So write a good PR title; individual commit messages matter less.
 8. After the merge: `git switch main && git pull`, then delete your local branch
@@ -54,8 +54,9 @@ the same for everyone.
 
 ## Code standards
 
-- **Run `bun run format` before committing.** Prettier formats everything the same way, so diffs show
-  only real changes; CI fails on unformatted files.
+- **Run `bun run format`, then `git add`.** Formatting after staging commits the unformatted
+  version. Prettier formats everything the same way, so diffs show only real changes; CI fails on
+  unformatted files.
 - **TypeScript stays strict.** No `any`, no `@ts-ignore`, no turning off lint rules. If the types
   fight you, that's a question to ask, not a rule to switch off.
 - **Styling uses Tailwind classes built from our tokens** (`bg-page`, `text-ink-muted`,

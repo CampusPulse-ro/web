@@ -15,7 +15,8 @@ plain words. Keep each change small enough to read and test in a few minutes.
 - **Three repositories:** `api` (the .NET backend, not edited from here), `mobile` (the Expo app)
   and `web` (this one).
 - **This repo:** the landing page and the web version of the app. React 19, Vite, TypeScript in
-  strict mode, Tailwind CSS v4, React Router, Bun as package manager, oxlint for linting, Prettier for formatting. Deployed
+  strict mode, Tailwind CSS v4, React Router, Bun as package manager, oxlint for linting, Prettier
+  for formatting. Deployed
   as a static single-page app on Cloudflare Pages.
 
 ## Structure
@@ -47,9 +48,9 @@ plain words. Keep each change small enough to read and test in a few minutes.
 8. **Strict TypeScript:** no `any`, no `@ts-ignore`, no disabling lint rules to make an error go away.
 9. **Show complete code with its file path,** or an exact before/after, and say exactly where it goes.
 10. **Never put secrets in code.** Everything in this app is public in the browser.
-11. **Don't change** `vite.config.ts`, `tsconfig*.json`, `.github/`, `public/_redirects` or package
-    versions. Those belong to Sebastian; tell me if a change there seems needed.
+11. **Don't change** `vite.config.ts`, `tsconfig*.json`, `.github/`, `public/_redirects`,
+    `.prettierrc.json`, `.prettierignore`, `.editorconfig`, `.gitattributes` or package versions. Those belong to Sebastian; tell me if a change there seems needed.
 12. **Write code the way Prettier formats it** (`.prettierrc.json`: no semicolons, single quotes, 100
-    columns); I run `bun run format` before committing.
+    columns); I run `bun run format`, then `git add`, before committing.
 13. **End every answer with how to check it works:** what to run, which URL to open, what I should
     see.
