@@ -1,0 +1,37 @@
+{
+  "app": {
+    "name": "CampusPulse"
+  },
+  "language": {
+    "label": "Limba",
+    "en": "English",
+    "ro": "Română"
+  },
+  "layout": {
+    "notOfficial": "CampusPulse este un proiect studențesc. Nu este o aplicație oficială UPT.",
+    "privacy": "Politica de confidențialitate",
+    "deleteAccount": "Șterge-ți contul"
+  },
+  "draftNotice": "Ciornă: această pagină este provizorie și nu conține textul final.",
+  "home": {
+    "tagline": "Campusul tău UPT, într-o singură aplicație.",
+    "comingSoon": "În curând.",
+    "openWebApp": "Deschide aplicația web"
+  },
+  "appPage": {
+    "title": "Aplicația web",
+    "body": "Aici va fi versiunea web a CampusPulse. Deocamdată nu este nimic de văzut."
+  },
+  "privacy": {
+    "title": "Politica de confidențialitate",
+    "body": "Această pagină va descrie ce date colectează CampusPulse, de ce, unde sunt stocate, cât timp sunt păstrate și cum ne poți contacta. Google Play o cere înainte ca aplicația să poată fi publicată."
+  },
+  "accountDeletion": {
+    "title": "Șterge-ți contul",
+    "body": "Această pagină va explica cum îți poți șterge contul CampusPulse și ce date sunt eliminate. Google Play cere o pagină web pentru asta, separată de opțiunea din aplicație."
+  },
+  "notFound": {
+    "title": "Pagina nu a fost găsită",
+    "body": "Nu există nimic la această adresă. <home>Mergi la pagina principală</home>."
+  }
+}
