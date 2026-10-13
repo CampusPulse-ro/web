@@ -31,17 +31,21 @@ An AI only knows what it can see. How you show it the project depends on the too
 ## 3. Prompts that work
 
 **A new page or section**
+
 > I'm adding [what] to [page]. Here is the current file: [paste]. Follow the patterns of the
 > existing pages in `src/pages/` and the rules in ai-context.md. Plan first, then code.
 
 **A bug**
+
 > I did [steps], expected [X], got [Y]. Exact error: [paste the whole message]. File: [paste].
 > Explain the cause before you fix it.
 
 **Understanding code**
+
 > Explain what this file does, step by step, for a beginner: [paste].
 
 **A review before your PR**
+
 > Here is my change: [paste the diff]. Check it against the rules in ai-context.md. What is wrong,
 > risky or unclear?
 

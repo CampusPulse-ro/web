@@ -8,8 +8,8 @@ export function AccountDeletionPage() {
         <DraftNotice />
       </div>
       <p className="mt-6 text-ink-soft">
-        This page will explain how to delete your CampusPulse account and which data is removed. Google
-        Play requires a web page for this, separate from the option inside the app.
+        This page will explain how to delete your CampusPulse account and which data is removed.
+        Google Play requires a web page for this, separate from the option inside the app.
       </p>
     </section>
   )
