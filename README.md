@@ -5,7 +5,8 @@ map, reminders). A student project for the Mobile Systems and Applications cours
 official UPT app. The mobile app lives in [`mobile`](https://github.com/CampusPulse-ro/mobile)
 and the backend in [`api`](https://github.com/CampusPulse-ro/api).
 
-- **Stack:** React 19 · Vite · TypeScript · Tailwind CSS v4 · React Router
+- **Stack:** React 19 · Vite · TypeScript · Tailwind CSS v4 · React Router · i18next
+- **Languages:** English (default) and Romanian; the switch is in the header and remembered on the device
 - **Package manager:** Bun
 
 ## Prerequisites
@@ -44,6 +45,7 @@ CI (`.github/workflows/ci.yml`) runs lint, the format check and build on every P
 | `src/components/` | Shared components                                                                  |
 | `src/Layout.tsx`  | Header and footer around every page                                                |
 | `src/index.css`   | Tailwind and the design tokens (`@theme`), same names and values as the mobile app |
+| `src/i18n/`       | every user-facing text: `en.json` and `ro.json` (same keys), language setup, dates |
 | `public/`         | Served as is: favicon, `_redirects`                                                |
 
 ## Routes

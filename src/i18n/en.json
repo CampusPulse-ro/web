@@ -1,0 +1,37 @@
+{
+  "app": {
+    "name": "CampusPulse"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ro": "Română"
+  },
+  "layout": {
+    "notOfficial": "CampusPulse is a student project. It is not an official UPT app.",
+    "privacy": "Privacy policy",
+    "deleteAccount": "Delete your account"
+  },
+  "draftNotice": "Draft: this page is a placeholder and is not the final text.",
+  "home": {
+    "tagline": "Your UPT campus, in one app.",
+    "comingSoon": "Coming soon.",
+    "openWebApp": "Open the web app"
+  },
+  "appPage": {
+    "title": "Web app",
+    "body": "The web version of CampusPulse will live here. Nothing to see yet."
+  },
+  "privacy": {
+    "title": "Privacy policy",
+    "body": "This page will describe what data CampusPulse collects, why, where it is stored, how long it is kept, and how to contact us. Google Play requires it before the app can be published."
+  },
+  "accountDeletion": {
+    "title": "Delete your account",
+    "body": "This page will explain how to delete your CampusPulse account and which data is removed. Google Play requires a web page for this, separate from the option inside the app."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "There is nothing at this address. <home>Go to the home page</home>."
+  }
+}

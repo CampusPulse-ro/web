@@ -2,6 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './index.css'
+// Initialises translations synchronously, before the first render.
+import './i18n'
 import { Layout } from './Layout'
 import { AccountDeletionPage } from './pages/AccountDeletionPage'
 import { AppPage } from './pages/AppPage'

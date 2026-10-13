@@ -33,21 +33,27 @@ All issues of the three repos are on the [CampusPulse board](https://github.com/
    Sebastian reviews.
 7. Merging is **squash only**: the whole PR becomes one commit on `main`, titled with the PR
    title. So write a good PR title; individual commit messages matter less.
-8. After the merge: `git switch main && git pull`, then delete your local branch
-   (`git branch -d <name>`). GitHub deletes the remote one.
+8. After the merge, update `main` and delete your local branch (GitHub deletes the remote one).
+   One command per line: Windows PowerShell 5.1 doesn't understand `&&`.
+   ```bash
+   git switch main
+   git pull
+   git branch -d <name>
+   ```
 
 One issue = one PR = one thing. If it grows past roughly 300 changed lines, split the issue.
 
 ## Where things go
 
-| Path              | What goes there                                                              |
-| ----------------- | ---------------------------------------------------------------------------- |
-| `src/main.tsx`    | The routes (React Router). A new page is added here                          |
-| `src/pages/`      | One file per page, named `<Name>Page.tsx`                                    |
-| `src/components/` | Pieces used by more than one page                                            |
-| `src/Layout.tsx`  | The frame around every page (header, footer)                                 |
-| `src/index.css`   | Tailwind and the design tokens (`@theme`). The only place colors are defined |
-| `public/`         | Files served as they are (favicon, `_redirects`)                             |
+| Path              | What goes there                                                               |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `src/main.tsx`    | The routes (React Router). A new page is added here                           |
+| `src/pages/`      | One file per page, named `<Name>Page.tsx`                                     |
+| `src/components/` | Pieces used by more than one page                                             |
+| `src/Layout.tsx`  | The frame around every page (header, footer)                                  |
+| `src/index.css`   | Tailwind and the design tokens (`@theme`). The only place colors are defined  |
+| `src/i18n/`       | `en.json` and `ro.json` (every user-facing text), language setup, date format |
+| `public/`         | Files served as they are (favicon, `_redirects`)                              |
 
 A new top-level folder (for example `src/api/` or `src/hooks/`): ask first, so the structure stays
 the same for everyone.
@@ -62,6 +68,15 @@ the same for everyone.
 - **Styling uses Tailwind classes built from our tokens** (`bg-page`, `text-ink-muted`,
   `border-line`, `text-accent`…). No hex colors in components and no arbitrary values like
   `bg-[#123456]`. That keeps a later light theme (or any palette change) a one-file change.
+- **No user-facing text written directly in components**, props included (`aria-label`, `alt`,
+  `title`, `placeholder`). Add a key to both `src/i18n/en.json` and `src/i18n/ro.json` and show it
+  with `t('key')` from `useTranslation()`; lint fails on text written straight into JSX
+  (`react/jsx-no-literals`). A sentence with a link uses `<Trans t={t} …>` (see `NotFoundPage`):
+  without `t={t}` it doesn't switch language. A missing or misspelled key fails `bun run build` and
+  CI and is underlined in the editor, but the dev server just shows the English text or the raw
+  key, so check the build. Romanian uses ș and ț with a comma below, never ş and ţ with a cedilla.
+  English is the default. Dates and times go through `useDateTimeFormat()` from
+  `src/i18n/format.ts`: they follow the chosen language and show in campus time (Europe/Bucharest).
 - **Every page that loads data shows four states:** loading, error (with a way to retry), empty,
   and the data.
 - **Responsive:** check every page at phone width (375px) and on a desktop width.
