@@ -4,7 +4,8 @@
  * Design tokens. Tailwind v4 turns every `--color-*` entry into utilities
  * (`bg-page`, `text-ink-muted`, `border-line`, ...).
  *
- * Dark only: there is no light theme and no `prefers-color-scheme: light` branch.
+ * One dark palette for now; a light theme would redefine the same tokens. The mobile app uses
+ * the same names and values (mobile/src/theme.ts): change both together.
  */
 @theme {
   --color-page: #0f1115;
