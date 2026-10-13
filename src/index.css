@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Tailwind v4 turns every `--color-*` entry into utilities
+ * (`bg-page`, `text-ink-muted`, `border-line`, ...).
+ *
+ * One dark palette for now; a light theme would redefine the same tokens. The mobile app uses
+ * the same names and values (mobile/src/theme.ts): change both together.
+ */
+@theme {
+  --color-page: #0f1115;
+  --color-raised: #181b21;
+  --color-sunken: #0b0d10;
+
+  --color-ink: #e6e8eb;
+  --color-ink-soft: #c2c8cf;
+  --color-ink-muted: #9aa3ad;
+
+  --color-line: #262a31;
+  --color-line-strong: #3a404a;
+
+  --color-accent: #4f8cff;
+  --color-warn: #f2b84b;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
