@@ -88,8 +88,21 @@ jobs:
           COMMIT_URL: ${{ steps.cf.outputs.deployment-url }}
         with:
           script: |
-            const branchUrl = process.env.BRANCH_URL;
             const commitUrl = process.env.COMMIT_URL;
+            // Wrangler 4 no longer prints the branch alias, so the action's output can be empty.
+            // Pages builds it from the branch name (lowercase, other characters as "-", at most
+            // 28 characters); list it only if it answers.
+            let branchUrl = process.env.BRANCH_URL;
+            if (!branchUrl) {
+              const alias = (context.payload.pull_request?.head?.ref || '')
+                .toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 28).replace(/-+$/, '');
+              const guess = alias && `https://${alias}.campuspulse-web.pages.dev`;
+              try {
+                if (guess && (await fetch(guess, { method: 'HEAD' })).ok) branchUrl = guess;
+              } catch (e) {
+                core.info(`branch alias ${guess} not reachable: ${e}`);
+              }
+            }
             // On a PR, context.sha is the synthetic merge commit; show the real head sha.
             const sha = (context.payload.pull_request?.head?.sha || context.sha).slice(0, 7);
             const marker = '<!-- campuspulse-preview -->';
