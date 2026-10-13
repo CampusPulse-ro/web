@@ -59,8 +59,24 @@ CI (`.github/workflows/ci.yml`) runs lint, the format check and build on every P
 
 ## Deploying
 
-It will be deployed to Cloudflare Pages as a static SPA: `public/_redirects` sends every path
-to `index.html` so client-side routes work on reload. No deploy workflow yet.
+Cloudflare Pages, project `campuspulse-web`, by direct upload from
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). It's a static SPA:
+`public/_redirects` sends every path to `index.html`, so client-side routes work on reload.
+
+| Trigger                             | Environment     | URL                                                           | API it talks to |
+| ----------------------------------- | --------------- | ------------------------------------------------------------- | --------------- |
+| a pull request                      | its own preview | `<branch>.campuspulse-web.pages.dev` (linked in a PR comment) | stage           |
+| a merge to `main`                   | staging         | https://staging.campuspulse-web.pages.dev                     | stage           |
+| a published GitHub Release `vX.Y.Z` | production      | https://campuspulse.thorsp.net                                | prod            |
+
+The API's base URL comes from `VITE_API_BASE`, set by the deploy for each target
+(`https://campuspulse-api-stage.thorsp.net` or `https://campuspulse-api.thorsp.net`).
+
+- **Releasing:** publish a GitHub Release with a `vX.Y.Z` tag; the Deploy workflow builds that
+  tag and deploys production. A manual run (Actions → Deploy → Run workflow) can also target
+  staging or production.
+- PRs from forks get no secrets, so they get no preview; the Deploy check isn't required for
+  merging.
 
 ## Contributing
 

@@ -1,0 +1,111 @@
+# Deploys to Cloudflare Pages (project campuspulse-web), the same way as amicus-web:
+#   pull request       -> its own preview (<branch>.campuspulse-web.pages.dev), stage API
+#   push to main       -> staging (staging.campuspulse-web.pages.dev), stage API
+#   published release  -> production (campuspulse.thorsp.net), prod API
+#   workflow_dispatch  -> pick staging or production
+# Not a required check: PRs from forks get no secrets, so their deploy can't run.
+name: Deploy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Which environment to deploy
+        type: choice
+        options: [staging, production]
+        default: staging
+
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+
+# One deploy per target at a time; a newer push to the same PR replaces the one in flight.
+concurrency:
+  group: deploy-${{ github.event_name == 'pull_request' && github.head_ref || github.event_name == 'release' && 'production' || inputs.environment || 'staging' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deploy:
+    name: deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    # Fork PRs get no secrets; skip instead of failing.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      # Decide the target once. A release (or a manual production run) is the only thing that
+      # touches production; everything else is staging or a preview on the stage API.
+      - name: Resolve target
+        id: t
+        env:
+          EVENT: ${{ github.event_name }}
+          CHOICE: ${{ inputs.environment }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$EVENT" = "release" ] || [ "$CHOICE" = "production" ]; then
+            echo "branch=production"                          >> "$GITHUB_OUTPUT"
+            echo "api=https://campuspulse-api.thorsp.net"     >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT" = "pull_request" ]; then
+            echo "branch=$HEAD_REF"                           >> "$GITHUB_OUTPUT"
+            echo "api=https://campuspulse-api-stage.thorsp.net" >> "$GITHUB_OUTPUT"
+          else
+            echo "branch=staging"                             >> "$GITHUB_OUTPUT"
+            echo "api=https://campuspulse-api-stage.thorsp.net" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        run: bun run build
+        env:
+          VITE_API_BASE: ${{ steps.t.outputs.api }}
+
+      - name: Deploy to Cloudflare Pages
+        id: cf
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=campuspulse-web --branch=${{ steps.t.outputs.branch }}
+
+      # On PRs, post (or update) one comment with the preview links. We deploy by direct
+      # upload, so Cloudflare's Git integration doesn't post it for us.
+      - name: Comment preview URL on the PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        env:
+          BRANCH_URL: ${{ steps.cf.outputs.pages-deployment-alias-url }}
+          COMMIT_URL: ${{ steps.cf.outputs.deployment-url }}
+        with:
+          script: |
+            const branchUrl = process.env.BRANCH_URL;
+            const commitUrl = process.env.COMMIT_URL;
+            // On a PR, context.sha is the synthetic merge commit; show the real head sha.
+            const sha = (context.payload.pull_request?.head?.sha || context.sha).slice(0, 7);
+            const marker = '<!-- campuspulse-preview -->';
+            const rows = [];
+            if (branchUrl) rows.push(`| **Branch preview** (always latest) | ${branchUrl} |`);
+            if (commitUrl && commitUrl !== branchUrl) rows.push(`| **This commit** (\`${sha}\`) | ${commitUrl} |`);
+            const links = rows.length
+              ? `\n\n| | |\n|---|---|\n${rows.join('\n')}`
+              : `\n\n${branchUrl || commitUrl || '_(deployment URL unavailable)_'}`;
+            const body = `${marker}\n### Preview deployed${links}\n\nUpdates on every push · talks to the stage API.`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
