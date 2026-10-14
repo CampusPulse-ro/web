@@ -68,7 +68,7 @@ Cloudflare Pages, project `campuspulse-web`, by direct upload. It's a static SPA
 | a merge to `main`                                                   | staging     | https://staging.campuspulse-web.pages.dev                                | stage           |
 | a published, non-prerelease GitHub Release `vX.Y.Z` cut from `main` | production  | https://campuspulse.thorsp.net                                           | prod            |
 
-- **Releasing:** publish a GitHub Release with a `vX.Y.Z` tag on a commit that's on `main`;
+- **Releasing** (admins only): publish a GitHub Release with a `vX.Y.Z` tag on a commit on `main`;
   [`deploy.yml`](.github/workflows/deploy.yml) builds it and deploys production. A manual run
   (Actions → Deploy → Run workflow) can target staging or production, from `main` only.
 - **Previews:** [`preview-build.yml`](.github/workflows/preview-build.yml) builds the PR with no
@@ -76,7 +76,9 @@ Cloudflare Pages, project `campuspulse-web`, by direct upload. It's a static SPA
   `main`'s copy of the workflow, so nothing a PR changes runs next to the Cloudflare token. PRs
   from forks get no preview.
 - **The Cloudflare token** is a secret of the `cloudflare-pages` environment, usable only from
-  `main` and `v*` tags. The jobs that hold it check nothing out and install nothing.
+  `main` and `v*` tags; only admins can create `v*` tags and releases. The jobs that hold it
+  check out only `main`'s [`.github/deploy`](.github/deploy) (wrangler, pinned with a
+  lockfile), install it without scripts, and see the token only in the upload step.
 - **API address:** `src/config.ts` exports `apiBase`, read from `VITE_API_BASE`, which the
   workflows set per target. Without it (local development) the app talks to the stage API.
 
