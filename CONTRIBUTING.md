@@ -45,17 +45,18 @@ One issue = one PR = one thing. If it grows past roughly 300 changed lines, spli
 
 ## Where things go
 
-| Path              | What goes there                                                               |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `src/main.tsx`    | The routes (React Router). A new page is added here                           |
-| `src/pages/`      | One file per page, named `<Name>Page.tsx`                                     |
-| `src/components/` | Pieces used by more than one page                                             |
-| `src/Layout.tsx`  | The frame around every page (header, footer)                                  |
-| `src/index.css`   | Tailwind and the design tokens (`@theme`). The only place colors are defined  |
-| `src/i18n/`       | `en.json` and `ro.json` (every user-facing text), language setup, date format |
-| `public/`         | Files served as they are (favicon, `_redirects`)                              |
+| Path              | What goes there                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| `src/main.tsx`    | The routes (React Router). A new page is added here                                     |
+| `src/pages/`      | One file per page, named `<Name>Page.tsx`                                               |
+| `src/components/` | Pieces used by more than one page                                                       |
+| `src/Layout.tsx`  | The frame around every page (header, footer)                                            |
+| `src/index.css`   | Tailwind and the design tokens (`@theme`). The only place colors are defined            |
+| `src/i18n/`       | `en.json` and `ro.json` (every user-facing text), language setup, date format           |
+| `src/api/`        | The API client: `schema.d.ts` (generated, never edited), `client.ts`, one hook per call |
+| `public/`         | Files served as they are (favicon, `_redirects`)                                        |
 
-A new top-level folder (for example `src/api/` or `src/hooks/`): ask first, so the structure stays
+A new top-level folder (for example `src/hooks/`): ask first, so the structure stays
 the same for everyone.
 
 ## Code standards
@@ -81,8 +82,29 @@ the same for everyone.
   and the data.
 - **Responsive:** check every page at phone width (375px) and on a desktop width.
 - **No new package without asking.**
-- **The backend is reached only through the generated API client** (being set up). Never a URL typed
-  into a component.
+- **The backend is reached only through the generated API client** (`src/api/`). Never a URL typed
+  into a component, never a bare `fetch`. Each call gets a small hook with TanStack Query, and the
+  call is wrapped in `unwrap()`, which returns the data of a 2xx response and throws an `ApiError`
+  (with `status` and `body`) for anything else:
+
+  ```ts
+  export function useThings() {
+    return useQuery({
+      queryKey: ['things'],
+      queryFn: async ({ signal }) => unwrap(await api.GET('/things', { signal })),
+    })
+  }
+  ```
+
+  The page then shows the four states: loading (`isPending`), error with a retry (`isError`, only
+  when there's no data to show), empty, and the data. Every request times out after 8 s. One
+  special case to look at: `useApiStatus` (`src/api/useApiStatus.ts`, the status line on `/app`),
+  where a 503 is a result to show rather than an error.
+
+  When the API's contract changes (a new endpoint or field), run `bun run api:types` and commit the
+  updated `src/api/openapi.json` and `schema.d.ts`. If the endpoint you need doesn't exist yet, ask
+  Sebastian.
+
 - **No secrets in the code or the repo:** no passwords, tokens or `.env` files. Everything in this
   app ends up public in the browser.
 - **Accessible basics:** real `<button>`s and `<a>`s (not clickable `<div>`s), `alt` text on images,

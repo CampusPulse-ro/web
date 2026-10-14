@@ -1,7 +1,10 @@
 /**
- * Where the CampusPulse API lives. The Deploy and Preview workflows set `VITE_API_BASE` for
- * each target (the stage API for previews and staging, the prod API for production); local
- * development without it talks to stage.
+ * Where the CampusPulse API lives. Every build sets `VITE_API_BASE` (the deploy and preview
+ * workflows per target: stage for previews and staging, prod for production; vite.config.ts
+ * refuses to build without it). Only `bun dev` without it falls back to the stage API.
  */
-export const apiBase: string =
-  import.meta.env.VITE_API_BASE || 'https://campuspulse-api-stage.thorsp.net'
+const stageApi = 'https://campuspulse-api-stage.thorsp.net'
+
+export const apiBase: string = (
+  import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? stageApi : '')
+).replace(/\/+$/, '')

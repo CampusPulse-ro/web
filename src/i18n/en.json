@@ -20,7 +20,15 @@
   },
   "appPage": {
     "title": "Web app",
-    "body": "The web version of CampusPulse will live here. Nothing to see yet."
+    "body": "The web version of CampusPulse will live here. Nothing to see yet.",
+    "api": {
+      "label": "API:",
+      "checking": "checking…",
+      "online": "online",
+      "degraded": "online, but its database isn't answering",
+      "unreachable": "can't be reached right now",
+      "retry": "Try again"
+    }
   },
   "privacy": {
     "title": "Privacy policy",

@@ -20,7 +20,15 @@
   },
   "appPage": {
     "title": "Aplicația web",
-    "body": "Aici va fi versiunea web a CampusPulse. Deocamdată nu este nimic de văzut."
+    "body": "Aici va fi versiunea web a CampusPulse. Deocamdată nu este nimic de văzut.",
+    "api": {
+      "label": "API:",
+      "checking": "se verifică…",
+      "online": "funcționează",
+      "degraded": "funcționează, dar baza de date nu răspunde",
+      "unreachable": "nu poate fi accesat acum",
+      "retry": "Încearcă din nou"
+    }
   },
   "privacy": {
     "title": "Politica de confidențialitate",
