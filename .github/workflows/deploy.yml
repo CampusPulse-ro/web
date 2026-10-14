@@ -1,6 +1,6 @@
 # Staging and production deploys to Cloudflare Pages (project campuspulse-web):
 #   push to main                        -> staging     (staging.campuspulse-web.pages.dev, stage API)
-#   published release vX.Y.Z from main  -> production  (campuspulse.thorsp.net, prod API)
+#   released vX.Y.Z from main           -> production  (campuspulse.thorsp.net, prod API)
 #   workflow_dispatch, on main only     -> staging or production
 # PR previews are separate: preview-build.yml + preview-deploy.yml.
 #
@@ -15,7 +15,10 @@ on:
   push:
     branches: [main]
   release:
-    types: [published]
+    # `released`, not `published`: it fires for a new full release AND for a pre-release promoted to
+    # one (`published` misses the promotion), and never for pre-releases or drafts. The checks in
+    # "Resolve target" still refuse anything that isn't a real vX.Y.Z release on main.
+    types: [released]
   workflow_dispatch:
     inputs:
       environment:
