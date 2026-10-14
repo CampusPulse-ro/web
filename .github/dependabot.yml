@@ -14,6 +14,12 @@ updates:
         exclude-patterns: ['prettier*']
         # Majors come as separate PRs: they are the ones that break things.
         update-types: ['minor', 'patch']
+    ignore:
+      # TypeScript 7 (the native compiler) no longer ships the compiler API that openapi-typescript
+      # needs to write src/api/schema.d.ts (its peer range is typescript ^5.x). Lift this once
+      # openapi-typescript supports 7 (#22).
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
