@@ -33,5 +33,6 @@
   "notFound": {
     "title": "Pagina nu a fost găsită",
     "body": "Nu există nimic la această adresă. <home>Mergi la pagina principală</home>."
-  }
+  },
+  "orphanProbe": "doar în română"
 }
