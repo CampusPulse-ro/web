@@ -35,6 +35,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: bun run format:check
 
+      # The client types come from the committed contract copy (`bun run api:types` refreshes both).
+      # Regenerating them must change nothing. This fails on a hand-edited schema.d.ts and on a
+      # generator that no longer runs (TypeScript 7 removed the compiler API openapi-typescript
+      # uses: #22).
+      - name: API types match the contract
+        if: ${{ !cancelled() }}
+        run: |
+          bunx openapi-typescript src/api/openapi.json -o src/api/schema.d.ts
+          git diff --exit-code -- src/api/schema.d.ts
+
       # Romanian ș/ț take a comma below; ş/ţ (cedilla) come from the old Windows keyboard and many AIs.
       - name: Romanian diacritics
         if: ${{ !cancelled() }}
