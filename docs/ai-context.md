@@ -21,15 +21,16 @@ plain words. Keep each change small enough to read and test in a few minutes.
 
 ## Structure
 
-| Path                | What                                                                                |
-| ------------------- | ----------------------------------------------------------------------------------- |
-| `src/main.tsx`      | Routes: `/` landing, `/app` web app, `/privacy`, `/account-deletion`, `*` not found |
-| `src/pages/`        | One component per page, `<Name>Page.tsx`                                            |
-| `src/components/`   | Shared components                                                                   |
-| `src/Layout.tsx`    | Header/footer frame around every page                                               |
-| `src/index.css`     | Tailwind import and design tokens in `@theme` (`--color-page`, `--color-ink`…)      |
-| `src/i18n/`         | `en.json` / `ro.json` (all user-facing text, same keys), setup, `format.ts` (dates) |
-| `public/_redirects` | Cloudflare Pages fallback so client routes work on reload                           |
+| Path                | What                                                                                                  |
+| ------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/main.tsx`      | Routes: `/` landing, `/app` web app, `/privacy`, `/account-deletion`, `*` not found                   |
+| `src/pages/`        | One component per page, `<Name>Page.tsx`                                                              |
+| `src/components/`   | Shared components                                                                                     |
+| `src/Layout.tsx`    | Header/footer frame around every page                                                                 |
+| `src/index.css`     | Tailwind import and design tokens in `@theme` (`--color-page`, `--color-ink`…)                        |
+| `src/i18n/`         | `en.json` / `ro.json` (all user-facing text, same keys), setup, `format.ts` (dates)                   |
+| `src/api/`          | `schema.d.ts` (generated from the API contract, never edited), `client.ts` (`api`), one hook per call |
+| `public/_redirects` | Cloudflare Pages fallback so client routes work on reload                                             |
 
 ## Rules for your answers
 
@@ -48,8 +49,11 @@ plain words. Keep each change small enough to read and test in a few minutes.
    with a cedilla (the old Windows keyboard and many AIs produce the cedilla ones; CI rejects them).
    Dates and times use `useDateTimeFormat()` from `src/i18n/format.ts` (campus time).
 6. **No new packages unless I ask.** If one is truly needed, say so and why.
-7. **The backend is called only through the generated API client.** Never `fetch` with a URL written
-   by hand. If the client or the endpoint you need doesn't exist yet, say so; do not invent one.
+7. **The backend is called only through the generated API client:** `api.GET('/path')` /
+   `api.POST(…)` from `src/api/client.ts` (openapi-fetch, typed by `src/api/schema.d.ts`), wrapped in a
+   TanStack Query hook like `src/api/useApiStatus.ts`; the page shows `isPending`, `isError` (with a
+   retry) and the data. Never `fetch` with a URL written by hand. If the endpoint you need isn't in
+   `schema.d.ts`, say so; do not invent one or edit the generated file.
 8. **Don't invent APIs.** If you are not sure something exists in React 19, React Router or
    Tailwind v4, say that you are not sure. Tailwind v4 is configured in CSS (`@theme`), not in a
    `tailwind.config.js`.

@@ -9,10 +9,13 @@
     "lint": "oxlint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "api:types": "openapi-typescript https://raw.githubusercontent.com/CampusPulse-ro/api/main/openapi/v1.json -o src/api/schema.d.ts"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.104.2",
     "i18next": "26.4.4",
+    "openapi-fetch": "0.17.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "17.0.16",
@@ -24,6 +27,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "openapi-typescript": "7.13.0",
     "oxlint": "^1.81.0",
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
