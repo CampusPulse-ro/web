@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+import { ApiError } from './client'
 
 /**
  * Caches what the API returns and tracks loading and error states for every screen
@@ -7,7 +8,9 @@ import { QueryClient } from '@tanstack/react-query'
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1, // one quick retry, then show the error state with its own "Try again"
+      // One quick retry for network errors and 5xx; a 4xx won't change by asking again.
+      retry: (failures, error) =>
+        failures < 1 && !(error instanceof ApiError && error.status < 500),
       staleTime: 30_000,
       refetchOnWindowFocus: false,
     },

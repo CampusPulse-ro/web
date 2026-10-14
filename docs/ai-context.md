@@ -50,10 +50,12 @@ plain words. Keep each change small enough to read and test in a few minutes.
    Dates and times use `useDateTimeFormat()` from `src/i18n/format.ts` (campus time).
 6. **No new packages unless I ask.** If one is truly needed, say so and why.
 7. **The backend is called only through the generated API client:** `api.GET('/path')` /
-   `api.POST(…)` from `src/api/client.ts` (openapi-fetch, typed by `src/api/schema.d.ts`), wrapped in a
-   TanStack Query hook like `src/api/useApiStatus.ts`; the page shows `isPending`, `isError` (with a
-   retry) and the data. Never `fetch` with a URL written by hand. If the endpoint you need isn't in
-   `schema.d.ts`, say so; do not invent one or edit the generated file.
+   `api.POST(…)` from `src/api/client.ts` (openapi-fetch, typed by `src/api/schema.d.ts`), wrapped in
+   `unwrap()` (throws `ApiError` on a non-2xx) inside a TanStack Query hook:
+   `queryFn: async ({ signal }) => unwrap(await api.GET('/things', { signal }))`. The page handles all
+   four states: loading (`isPending`), error with a retry (`isError`; show the error screen only when
+   there's no data), empty, and the data. Never `fetch` with a URL written by hand. If the endpoint you
+   need isn't in `schema.d.ts`, say so; do not invent one or edit the generated files.
 8. **Don't invent APIs.** If you are not sure something exists in React 19, React Router or
    Tailwind v4, say that you are not sure. Tailwind v4 is configured in CSS (`@theme`), not in a
    `tailwind.config.js`.

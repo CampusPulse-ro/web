@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "api:types": "openapi-typescript https://raw.githubusercontent.com/CampusPulse-ro/api/main/openapi/v1.json -o src/api/schema.d.ts"
+    "api:types": "bun scripts/fetch-contract.ts && openapi-typescript src/api/openapi.json -o src/api/schema.d.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "5.104.2",

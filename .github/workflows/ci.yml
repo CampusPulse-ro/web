@@ -44,3 +44,6 @@ jobs:
       - name: Build
         if: ${{ !cancelled() }}
         run: bun run build
+        env:
+          # A build must name its API (vite.config.ts); CI builds against stage.
+          VITE_API_BASE: https://campuspulse-api-stage.thorsp.net

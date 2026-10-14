@@ -56,7 +56,7 @@ One issue = one PR = one thing. If it grows past roughly 300 changed lines, spli
 | `src/api/`        | The API client: `schema.d.ts` (generated, never edited), `client.ts`, one hook per call |
 | `public/`         | Files served as they are (favicon, `_redirects`)                                        |
 
-A new top-level folder (for example `src/api/` or `src/hooks/`): ask first, so the structure stays
+A new top-level folder (for example `src/hooks/`): ask first, so the structure stays
 the same for everyone.
 
 ## Code standards
@@ -83,26 +83,27 @@ the same for everyone.
 - **Responsive:** check every page at phone width (375px) and on a desktop width.
 - **No new package without asking.**
 - **The backend is reached only through the generated API client** (`src/api/`). Never a URL typed
-  into a component, never a bare `fetch`. Each call gets a small hook with TanStack Query; the page
-  shows its loading, error and data states. The example is `useApiStatus` and the status line on
-  `/app`:
+  into a component, never a bare `fetch`. Each call gets a small hook with TanStack Query, and the
+  call is wrapped in `unwrap()`, which returns the data of a 2xx response and throws an `ApiError`
+  (with `status` and `body`) for anything else:
 
   ```ts
-  // src/api/useApiStatus.ts
-  export function useApiStatus() {
+  export function useThings() {
     return useQuery({
-      queryKey: ['health', 'ready'],
-      queryFn: async ({ signal }) => {
-        const { data, response } = await api.GET('/health/ready', { signal })
-        // data, error and the paths are all typed from the API's contract
-        ...
-      },
+      queryKey: ['things'],
+      queryFn: async ({ signal }) => unwrap(await api.GET('/things', { signal })),
     })
   }
   ```
 
+  The page then shows the four states: loading (`isPending`), error with a retry (`isError`, only
+  when there's no data to show), empty, and the data. Every request times out after 8 s. One
+  special case to look at: `useApiStatus` (`src/api/useApiStatus.ts`, the status line on `/app`),
+  where a 503 is a result to show rather than an error.
+
   When the API's contract changes (a new endpoint or field), run `bun run api:types` and commit the
-  updated `src/api/schema.d.ts`. If the endpoint you need doesn't exist yet, ask Sebastian.
+  updated `src/api/openapi.json` and `schema.d.ts`. If the endpoint you need doesn't exist yet, ask
+  Sebastian.
 
 - **No secrets in the code or the repo:** no passwords, tokens or `.env` files. Everything in this
   app ends up public in the browser.

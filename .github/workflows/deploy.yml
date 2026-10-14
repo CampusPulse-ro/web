@@ -78,6 +78,20 @@ jobs:
           echo "api=$api" >> "$GITHUB_OUTPUT"
           echo "Deploying $target with VITE_API_BASE=$api"
 
+      # Production must talk to an API that serves the contract this build was generated from;
+      # otherwise the API's release has to go out first.
+      - name: Check the contract matches the prod API
+        if: steps.t.outputs.branch == 'production'
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 20 https://campuspulse-api.thorsp.net/openapi/v1.json \
+            | jq -S 'del(.servers)' > "$RUNNER_TEMP/prod-contract.json"
+          jq -S 'del(.servers)' src/api/openapi.json > "$RUNNER_TEMP/web-contract.json"
+          if ! diff -u "$RUNNER_TEMP/prod-contract.json" "$RUNNER_TEMP/web-contract.json"; then
+            echo "::error::This build was generated from an API contract the prod API doesn't serve yet (diff above). Release the API first, or regenerate src/api/openapi.json with bun run api:types."
+            exit 1
+          fi
+
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.3

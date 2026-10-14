@@ -81,9 +81,14 @@ Cloudflare Pages, project `campuspulse-web`, by direct upload. It's a static SPA
   lockfile), install it without scripts, and see the token only in the upload step.
 - **API address:** `src/config.ts` exports `apiBase`, read from `VITE_API_BASE`, which the
   workflows set per target. Without it (local development) the app talks to the stage API.
-- **API types:** `bun run api:types` regenerates `src/api/schema.d.ts` from
-  https://raw.githubusercontent.com/CampusPulse-ro/api/main/openapi/v1.json (the API's committed
-  contract). Run it after the API changes, and commit the result.
+- **API types:** `bun run api:types` downloads the API's committed contract
+  (https://raw.githubusercontent.com/CampusPulse-ro/api/main/openapi/v1.json) into
+  `src/api/openapi.json` and generates `src/api/schema.d.ts` from that copy. Run it after the API
+  changes and commit both: builds use the copy, so they're reproducible and a contract change shows
+  as a diff.
+- **A build must name its API:** `bun run build` refuses to run without `VITE_API_BASE`. CI and the
+  workflows set it; locally, put `VITE_API_BASE=https://campuspulse-api-stage.thorsp.net` in
+  `.env.local`. `bun dev` without it uses the stage API.
 
 ## Releasing
 
@@ -97,6 +102,9 @@ A release is what puts the web app on production (https://campuspulse.thorsp.net
   ```
   Publishing it (not as a pre-release or draft) makes [`deploy.yml`](.github/workflows/deploy.yml)
   build that tag against the prod API and deploy it to production.
+- **The API goes first.** A production build checks that `src/api/openapi.json` (the contract the
+  app was generated from) matches what the prod API serves, and fails with "release the API
+  first" if it doesn't. So a release that needs a new API version waits for that API release.
 - **Release notes** are generated from the merged PRs and grouped by label
   ([`.github/release.yml`](.github/release.yml)): Features (`enhancement`), Fixes (`bug`),
   Dependencies (`dependencies` or Dependabot), Other changes. Label your PR so it lands in the right

@@ -12,30 +12,31 @@ export function AppPage() {
   )
 }
 
-/** One line saying whether the API answers: loading, error (with retry), and the two results. */
+/** One line saying whether the API answers: checking, error (with retry), and the two results. */
 function ApiStatusLine() {
   const { t } = useTranslation()
   const status = useApiStatus()
 
   let text: string
-  if (status.isPending) text = t('appPage.api.checking')
+  if (status.isPending || (status.isError && status.isFetching)) text = t('appPage.api.checking')
   else if (status.isError) text = t('appPage.api.unreachable')
   else text = status.data === 'online' ? t('appPage.api.online') : t('appPage.api.degraded')
 
   return (
-    <p className="mt-6 flex flex-wrap items-center gap-3 text-sm text-ink-muted" role="status">
-      <span>
+    <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-ink-muted">
+      <p className="m-0" role="status">
         {t('appPage.api.label')} {text}
-      </span>
+      </p>
       {status.isError && (
         <button
           type="button"
           onClick={() => void status.refetch()}
-          className="min-h-11 rounded-md border border-line px-3 text-ink hover:bg-raised"
+          disabled={status.isFetching}
+          className="min-h-11 rounded-md border border-line px-3 text-ink hover:bg-raised disabled:opacity-50"
         >
           {t('appPage.api.retry')}
         </button>
       )}
-    </p>
+    </div>
   )
 }
