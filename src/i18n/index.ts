@@ -10,6 +10,8 @@ import roJson from './ro.json'
 
 /** Romanian must have every key English has: a missing one is a type error here. */
 const ro: typeof en = roJson
+/** ...and no key English lacks (left over after a rename): an orphan is a type error here. */
+void (en satisfies typeof roJson)
 
 export const languages = ['en', 'ro'] as const
 export type Language = (typeof languages)[number]
