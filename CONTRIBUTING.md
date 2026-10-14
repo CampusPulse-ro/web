@@ -72,8 +72,8 @@ the same for everyone.
   `title`, `placeholder`). Add a key to both `src/i18n/en.json` and `src/i18n/ro.json` and show it
   with `t('key')` from `useTranslation()`; lint fails on text written straight into JSX
   (`react/jsx-no-literals`). A sentence with a link uses `<Trans t={t} …>` (see `NotFoundPage`):
-  without `t={t}` it doesn't switch language. A missing or misspelled key fails `bun run build` and
-  CI and is underlined in the editor, but the dev server just shows the English text or the raw
+  without `t={t}` it doesn't switch language. A missing or misspelled key, or a key in only one of the two
+  files, fails `bun run build` and CI and is underlined in the editor, but the dev server just shows the English text or the raw
   key, so check the build. Romanian uses ș and ț with a comma below, never ş and ţ with a cedilla.
   English is the default. Dates and times go through `useDateTimeFormat()` from
   `src/i18n/format.ts`: they follow the chosen language and show in campus time (Europe/Bucharest).
