@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
+    "design:tokens": "bun scripts/design-tokens.ts",
     "api:types": "bun scripts/fetch-contract.ts && openapi-typescript src/api/openapi.json -o src/api/schema.d.ts"
   },
   "dependencies": {

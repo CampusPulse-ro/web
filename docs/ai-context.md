@@ -21,16 +21,18 @@ plain words. Keep each change small enough to read and test in a few minutes.
 
 ## Structure
 
-| Path                | What                                                                                                  |
-| ------------------- | ----------------------------------------------------------------------------------------------------- |
-| `src/main.tsx`      | Routes: `/` landing, `/app` web app, `/privacy`, `/account-deletion`, `*` not found                   |
-| `src/pages/`        | One component per page, `<Name>Page.tsx`                                                              |
-| `src/components/`   | Shared components                                                                                     |
-| `src/Layout.tsx`    | Header/footer frame around every page                                                                 |
-| `src/index.css`     | Tailwind import and design tokens in `@theme` (`--color-page`, `--color-ink`…)                        |
-| `src/i18n/`         | `en.json` / `ro.json` (all user-facing text, same keys), setup, `format.ts` (dates)                   |
-| `src/api/`          | `schema.d.ts` (generated from the API contract, never edited), `client.ts` (`api`), one hook per call |
-| `public/_redirects` | Cloudflare Pages fallback so client routes work on reload                                             |
+| Path                 | What                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/main.tsx`       | Routes: `/` landing, `/app` web app, `/privacy`, `/account-deletion`, `*` not found                   |
+| `src/pages/`         | One component per page, `<Name>Page.tsx`                                                              |
+| `src/components/`    | Shared components                                                                                     |
+| `src/Layout.tsx`     | Header/footer frame around every page                                                                 |
+| `src/index.css`      | Tailwind import, page-wide styles, and the import of the generated tokens                             |
+| `design/tokens.json` | The design tokens, the one source for web and mobile (`docs/design-system.md`)                        |
+| `src/design/`        | `tokens.css`: Tailwind `@theme` generated from `tokens.json` (`bun run design:tokens`), never edited  |
+| `src/i18n/`          | `en.json` / `ro.json` (all user-facing text, same keys), setup, `format.ts` (dates)                   |
+| `src/api/`           | `schema.d.ts` (generated from the API contract, never edited), `client.ts` (`api`), one hook per call |
+| `public/_redirects`  | Cloudflare Pages fallback so client routes work on reload                                             |
 
 ## Rules for your answers
 
@@ -38,7 +40,9 @@ plain words. Keep each change small enough to read and test in a few minutes.
    the closest existing one and match it.
 2. **Style with Tailwind classes made from our tokens** (`bg-page`, `bg-raised`, `text-ink`,
    `text-ink-muted`, `border-line`, `text-accent`). No hex colors and no arbitrary values like
-   `bg-[#123456]`. A new color is added to `@theme` in `src/index.css`, not inline.
+   `bg-[#123456]`. A new color is a new token in `design/tokens.json`, then `bun run design:tokens`;
+   never inline, and never in the generated `src/design/tokens.css`. Component names and variants come
+   from `docs/design-system.md` (the same in Figma, web and mobile).
 3. **Pages that load data handle four states:** loading, error with retry, empty, and data.
 4. **Responsive:** it must work at 375px wide and on desktop.
 5. **No user-facing text written directly in a component**, props included (`aria-label`, `alt`,

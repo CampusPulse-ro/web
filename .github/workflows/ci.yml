@@ -45,6 +45,15 @@ jobs:
           bunx openapi-typescript src/api/openapi.json -o src/api/schema.d.ts
           git diff --exit-code -- src/api/schema.d.ts
 
+      # The design tokens' one source is design/tokens.json (docs/design-system.md), and
+      # src/design/tokens.css is generated from it. Regenerating must change nothing: this fails on a
+      # hand-edited tokens.css, or a JSON change committed without `bun run design:tokens`.
+      - name: Design tokens match
+        if: ${{ !cancelled() }}
+        run: |
+          bun run design:tokens
+          git diff --exit-code -- src/design/tokens.css
+
       # Romanian ș/ț take a comma below; ş/ţ (cedilla) come from the old Windows keyboard and many AIs.
       - name: Romanian diacritics
         if: ${{ !cancelled() }}

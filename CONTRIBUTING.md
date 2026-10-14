@@ -45,16 +45,18 @@ One issue = one PR = one thing. If it grows past roughly 300 changed lines, spli
 
 ## Where things go
 
-| Path              | What goes there                                                                         |
-| ----------------- | --------------------------------------------------------------------------------------- |
-| `src/main.tsx`    | The routes (React Router). A new page is added here                                     |
-| `src/pages/`      | One file per page, named `<Name>Page.tsx`                                               |
-| `src/components/` | Pieces used by more than one page                                                       |
-| `src/Layout.tsx`  | The frame around every page (header, footer)                                            |
-| `src/index.css`   | Tailwind and the design tokens (`@theme`). The only place colors are defined            |
-| `src/i18n/`       | `en.json` and `ro.json` (every user-facing text), language setup, date format           |
-| `src/api/`        | The API client: `schema.d.ts` (generated, never edited), `client.ts`, one hook per call |
-| `public/`         | Files served as they are (favicon, `_redirects`)                                        |
+| Path                 | What goes there                                                                                       |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/main.tsx`       | The routes (React Router). A new page is added here                                                   |
+| `src/pages/`         | One file per page, named `<Name>Page.tsx`                                                             |
+| `src/components/`    | Pieces used by more than one page                                                                     |
+| `src/Layout.tsx`     | The frame around every page (header, footer)                                                          |
+| `design/tokens.json` | The design tokens. The only place colors are defined ([docs/design-system.md](docs/design-system.md)) |
+| `src/design/`        | `tokens.css` (Tailwind `@theme`), generated from `tokens.json` by `bun run design:tokens`             |
+| `src/index.css`      | Tailwind, page-wide styles, the import of the generated tokens                                        |
+| `src/i18n/`          | `en.json` and `ro.json` (every user-facing text), language setup, date format                         |
+| `src/api/`           | The API client: `schema.d.ts` (generated, never edited), `client.ts`, one hook per call               |
+| `public/`            | Files served as they are (favicon, `_redirects`)                                                      |
 
 A new top-level folder (for example `src/hooks/`): ask first, so the structure stays
 the same for everyone.
@@ -68,7 +70,8 @@ the same for everyone.
   fight you, that's a question to ask, not a rule to switch off.
 - **Styling uses Tailwind classes built from our tokens** (`bg-page`, `text-ink-muted`,
   `border-line`, `text-accent`…). No hex colors in components and no arbitrary values like
-  `bg-[#123456]`. That keeps a later light theme (or any palette change) a one-file change.
+  `bg-[#123456]`. That keeps a later light theme (or any palette change) a one-file change. A new
+  color is a token in `design/tokens.json`; components use the names in [docs/design-system.md](docs/design-system.md).
 - **No user-facing text written directly in components**, props included (`aria-label`, `alt`,
   `title`, `placeholder`). Add a key to both `src/i18n/en.json` and `src/i18n/ro.json` and show it
   with `t('key')` from `useTranslation()`; lint fails on text written straight into JSX
