@@ -23,3 +23,12 @@ updates:
     groups:
       actions:
         patterns: ['*']
+
+  # The pinned deploy tooling the Deploy and Preview deploy workflows run (wrangler).
+  - package-ecosystem: npm
+    directory: /.github/deploy
+    schedule:
+      interval: weekly
+    groups:
+      deploy-tooling:
+        patterns: ['*']

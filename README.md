@@ -59,8 +59,28 @@ CI (`.github/workflows/ci.yml`) runs lint, the format check and build on every P
 
 ## Deploying
 
-It will be deployed to Cloudflare Pages as a static SPA: `public/_redirects` sends every path
-to `index.html` so client-side routes work on reload. No deploy workflow yet.
+Cloudflare Pages, project `campuspulse-web`, by direct upload. It's a static SPA:
+`public/_redirects` sends every path to `index.html`, so client-side routes work on reload.
+
+| Trigger                                                             | Environment | URL                                                                      | API it talks to |
+| ------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------ | --------------- |
+| a pull request from this repo                                       | its preview | `https://pr-<number>.campuspulse-web.pages.dev` (linked in a PR comment) | stage           |
+| a merge to `main`                                                   | staging     | https://staging.campuspulse-web.pages.dev                                | stage           |
+| a published, non-prerelease GitHub Release `vX.Y.Z` cut from `main` | production  | https://campuspulse.thorsp.net                                           | prod            |
+
+- **Releasing** (admins only): publish a GitHub Release with a `vX.Y.Z` tag on a commit on `main`;
+  [`deploy.yml`](.github/workflows/deploy.yml) builds it and deploys production. A manual run
+  (Actions → Deploy → Run workflow) can target staging or production, from `main` only.
+- **Previews:** [`preview-build.yml`](.github/workflows/preview-build.yml) builds the PR with no
+  secrets; [`preview-deploy.yml`](.github/workflows/preview-deploy.yml) then uploads it from
+  `main`'s copy of the workflow, so nothing a PR changes runs next to the Cloudflare token. PRs
+  from forks get no preview.
+- **The Cloudflare token** is a secret of the `cloudflare-pages` environment, usable only from
+  `main` and `v*` tags; only admins can create `v*` tags and releases. The jobs that hold it
+  check out only `main`'s [`.github/deploy`](.github/deploy) (wrangler, pinned with a
+  lockfile), install it without scripts, and see the token only in the upload step.
+- **API address:** `src/config.ts` exports `apiBase`, read from `VITE_API_BASE`, which the
+  workflows set per target. Without it (local development) the app talks to the stage API.
 
 ## Contributing
 
