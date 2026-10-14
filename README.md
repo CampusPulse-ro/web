@@ -68,9 +68,8 @@ Cloudflare Pages, project `campuspulse-web`, by direct upload. It's a static SPA
 | a merge to `main`                                                   | staging     | https://staging.campuspulse-web.pages.dev                                | stage           |
 | a published, non-prerelease GitHub Release `vX.Y.Z` cut from `main` | production  | https://campuspulse.thorsp.net                                           | prod            |
 
-- **Releasing** (admins only): publish a GitHub Release with a `vX.Y.Z` tag on a commit on `main`;
-  [`deploy.yml`](.github/workflows/deploy.yml) builds it and deploys production. A manual run
-  (Actions → Deploy → Run workflow) can target staging or production, from `main` only.
+- **Releasing:** see [Releasing](#releasing). A manual run (Actions → Deploy → Run workflow) can
+  target staging or production, from `main` only.
 - **Previews:** [`preview-build.yml`](.github/workflows/preview-build.yml) builds the PR with no
   secrets; [`preview-deploy.yml`](.github/workflows/preview-deploy.yml) then uploads it from
   `main`'s copy of the workflow, so nothing a PR changes runs next to the Cloudflare token. PRs
@@ -81,6 +80,23 @@ Cloudflare Pages, project `campuspulse-web`, by direct upload. It's a static SPA
   lockfile), install it without scripts, and see the token only in the upload step.
 - **API address:** `src/config.ts` exports `apiBase`, read from `VITE_API_BASE`, which the
   workflows set per target. Without it (local development) the app talks to the stage API.
+
+## Releasing
+
+A release is what puts the web app on production (https://campuspulse.thorsp.net).
+
+- **Tags are `vX.Y.Z`** (semver). Only admins can create `v*` tags, and therefore releases (a tag
+  ruleset).
+- **Cut one from `main`:**
+  ```bash
+  gh release create vX.Y.Z --target main --generate-notes
+  ```
+  Publishing it (not as a pre-release or draft) makes [`deploy.yml`](.github/workflows/deploy.yml)
+  build that tag against the prod API and deploy it to production.
+- **Release notes** are generated from the merged PRs and grouped by label
+  ([`.github/release.yml`](.github/release.yml)): Features (`enhancement`), Fixes (`bug`),
+  Dependencies (`dependencies` or Dependabot), Other changes. Label your PR so it lands in the right
+  group.
 
 ## Contributing
 
