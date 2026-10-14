@@ -100,8 +100,9 @@ A release is what puts the web app on production (https://campuspulse.thorsp.net
   ```bash
   gh release create vX.Y.Z --target main --generate-notes
   ```
-  Publishing it (not as a pre-release or draft) makes [`deploy.yml`](.github/workflows/deploy.yml)
-  build that tag against the prod API and deploy it to production.
+  Publishing it (not as a pre-release or draft), or later promoting a pre-release to a full release,
+  makes [`deploy.yml`](.github/workflows/deploy.yml) build that tag against the prod API and deploy
+  it to production.
 - **The API goes first.** A production build checks that `src/api/openapi.json` (the contract the
   app was generated from) matches what the prod API serves, and fails with "release the API
   first" if it doesn't. So a release that needs a new API version waits for that API release.
