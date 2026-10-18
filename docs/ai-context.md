@@ -42,7 +42,7 @@ plain words. Keep each change small enough to read and test in a few minutes.
    `text-ink-muted`, `border-line`, `text-accent`). No hex colors and no arbitrary values like
    `bg-[#123456]`. A new color is a new token in `design/tokens.json`, then `bun run design:tokens`;
    never inline, and never in the generated `src/design/tokens.css`. Component names and variants come
-   from `docs/design-system.md` (the same in Figma, web and mobile).
+   from `docs/design-system.md` (the same in Penpot, web and mobile).
 3. **Pages that load data handle four states:** loading, error with retry, empty, and data.
 4. **Responsive:** it must work at 375px wide and on desktop.
 5. **No user-facing text written directly in a component**, props included (`aria-label`, `alt`,
