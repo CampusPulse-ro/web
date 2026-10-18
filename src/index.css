@@ -2,8 +2,9 @@
 
 /*
  * Design tokens, generated from design/tokens.json by `bun run design:tokens` (never edit
- * tokens.css by hand). Tailwind v4 turns every `--color-*` entry into utilities (`bg-page`,
- * `text-ink-muted`, `border-line`, ...). Mobile generates its theme from the same JSON.
+ * tokens.css by hand). Tailwind v4 turns them into utilities: colors (`bg-page`, `text-ink-muted`,
+ * `border-line`, ...), radii (`rounded-md` is 12px, as on mobile), the type scale (`text-body`,
+ * `text-label`, ...) and `font-sans`. Mobile generates its theme from the same JSON.
  * docs/design-system.md has the whole flow.
  */
 @import './design/tokens.css';
@@ -16,11 +17,6 @@ body {
   margin: 0;
   background: var(--color-page);
   color: var(--color-ink);
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
