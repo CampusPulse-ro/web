@@ -39,7 +39,9 @@ plain words. Keep each change small enough to read and test in a few minutes.
 1. **Follow the existing patterns.** Before writing a new page or component, look at (or ask for)
    the closest existing one and match it.
 2. **Style with Tailwind classes made from our tokens** (`bg-page`, `bg-raised`, `text-ink`,
-   `text-ink-muted`, `border-line`, `text-accent`). No hex colors and no arbitrary values like
+   `text-ink-muted`, `border-line`, `text-accent`, `text-on-accent` on accent fills), the type scale
+   (`text-title`, `text-body`, `text-caption`, …) and the radius scale (`rounded-sm`, `rounded-md`,
+   `rounded-lg`, `rounded-full`). No hex colors and no arbitrary values like
    `bg-[#123456]`. A new color is a new token in `design/tokens.json`, then `bun run design:tokens`;
    never inline, and never in the generated `src/design/tokens.css`. Component names and variants come
    from `docs/design-system.md` (the same in Penpot, web and mobile).

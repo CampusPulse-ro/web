@@ -10,7 +10,7 @@ export function HomePage() {
       <p className="mt-6 text-ink-muted">{t('home.comingSoon')}</p>
       <Link
         to="/app"
-        className="mt-8 inline-block rounded-md bg-accent px-4 py-2 font-medium text-white no-underline"
+        className="mt-8 inline-block rounded-md bg-accent px-4 py-2 font-medium text-on-accent no-underline"
       >
         {t('home.openWebApp')}
       </Link>

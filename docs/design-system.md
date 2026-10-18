@@ -29,10 +29,9 @@ Three pages:
 - **Screens:** Today, Timetable and Profile on mobile and Today on web, built only from those
   components. They show how the parts fit, not finished screens.
 
-The file's Tokens tab has two token sets: **CampusPulse** (exactly `design/tokens.json`) and
-**Proposed** (tokens the design uses that aren't in code yet, see [Proposals](#proposals)). The
-Assets tab has the same colors as library colors, the typography styles and the components. Inspect
-mode shows the size, spacing and CSS of any layer.
+The file's Tokens tab has one token set, **CampusPulse**: the same names and values as
+`design/tokens.json`. The Assets tab has the same colors as library colors, the type scale as
+typography styles and the components. Inspect mode shows the size, spacing and CSS of any layer.
 
 ### Getting access
 
@@ -50,7 +49,8 @@ Penpot token set "CampusPulse" ──Tokens › Tools › Export──▶ design
 ```
 
 1. Change the token in Penpot: Tokens tab, set "CampusPulse". A token's name is its path in the
-   JSON: `color.ink-soft`, `space.md`, `radius.pill`.
+   JSON: `color.ink-soft`, `space.md`, `radius.pill`, `type.body-small`. A change to the type scale
+   also goes into the matching typography style (Assets tab), which is what the components use.
 2. Put the same change in `design/tokens.json`. Penpot's export (Tokens › Tools › Export, single
    file) has the same names and values, but it nests them under the set name (`"CampusPulse": {…}`),
    lists them in its own order and uses Penpot's types (`spacing`, `borderRadius`) where
@@ -63,19 +63,28 @@ Penpot token set "CampusPulse" ──Tokens › Tools › Export──▶ design
    **a token change reaches mobile only when someone runs the script there**.
 
 `tokens.json` is in the W3C Design Tokens (DTCG) format: groups with a `$type`, tokens with a `$value`
-and optionally a `$description`. In Penpot, `color.*` are Color tokens, `space.*` Spacing tokens and
-`radius.*` Border radius tokens, so they bind to fills, padding and gaps, and corners.
+and optionally a `$description`. A value can be an alias of another token: `color.on-accent` is
+`{color.page}`, and every `type.*` takes its `fontFamily` from `{font.sans}`; the generators resolve
+them. In `type.*`, `lineHeight` is a ratio of `fontSize` (DTCG), and each `$description` gives the
+size and line height in px. In Penpot, `color.*` are Color tokens, `space.*` Spacing, `radius.*`
+Border radius, `font.*` Font family and `type.*` Typography tokens.
 
 ### What each app gets
 
 - **Colors:** both apps. Web: `--color-<name>` in `@theme`, so Tailwind makes `bg-page`,
-  `text-ink-muted`, `border-line`… Mobile: `color.<name>` in camelCase (`color.inkMuted`).
-- **Spacing (`space`) and radius (`radius`):** mobile only for now (`space.md`, `radius.pill`). This app
-  uses Tailwind's default scale (`px-3`, `rounded-md`); putting the mobile scale in `@theme` would
-  change every page. The Penpot file uses mobile's radius scale everywhere: see the
-  [radius proposal](#one-radius-scale).
-- **Typography** isn't a token yet: both apps use the system font. The Penpot file has a type scale as
-  typography styles: see the [type scale proposal](#type-scale).
+  `text-ink-muted`, `border-line`, `text-on-accent`… Mobile: `color.<name>` in camelCase
+  (`color.inkMuted`, `color.onAccent`).
+- **Radius:** both apps, one scale. Web: `--radius-sm`, `--radius-md`, `--radius-lg` and, from
+  `radius.pill`, `--radius-full`, so `rounded-md` is 12 px here as `radius.md` is on mobile. Mobile:
+  `radius.md`, `radius.pill`.
+- **Type scale:** both apps. Web: `--text-<name>` with its line height, weight and letter spacing,
+  so one class sets the whole style (`text-heading`, `text-body-small`), and `--font-sans` (the
+  system UI font) for the page. Mobile: `type.<name>` in camelCase, a React Native text style
+  (`<Text style={[type.bodySmall, { color: color.inkMuted }]}>`), without a font family: mobile keeps
+  the platform font. Penpot's typography styles draw the same scale in Inter, because Penpot can't
+  use the system font.
+- **Spacing (`space`):** mobile only (`space.md`). This app keeps Tailwind's spacing, whose 4 px steps
+  already hold every `space.*` value (`1`, `2`, `3`, `4`, `6`, `8` = 4, 8, 12, 16, 24, 32).
 
 ## Naming rules
 
@@ -100,21 +109,16 @@ Every interactive component draws its states the same way, so code can share the
 - **selected:** a 12–16% `accent` tint (`bg-accent/15` on web), often with a check.
 - **Tones** (Banner, Chip): a 12–16% tint of the tone color, its text in the tone color or `ink`.
 
-## Proposals
+## The scales
 
-What the Penpot file uses that the code doesn't have yet. Each is its own later PR (token first,
-then both apps), once the team agrees. Nothing here is in `tokens.json` today.
+Adopted in #29 here and CampusPulse-ro/mobile#27. The Foundations page in Penpot shows them all.
 
 ### Type scale
-
-Typography styles in Penpot; Inter is the design font there, because Penpot can't use the system
-font. Code keeps the system UI font (web: `system-ui, -apple-system, 'Segoe UI', Roboto,
-sans-serif`, as today; mobile: the platform font). Sizes in px on web and dp on mobile.
 
 | Style        | Size / line height | Weight | Letter spacing | Used for                                   |
 | ------------ | ------------------ | ------ | -------------- | ------------------------------------------ |
 | `display`    | 34 / 40            | 700    | −0.5           | big numbers, the web landing page          |
-| `title`      | 28 / 34            | 700    | −0.3           | screen titles (today's mobile `Title`)     |
+| `title`      | 28 / 34            | 700    | −0.3           | screen titles (mobile's `Title`)           |
 | `heading`    | 20 / 28            | 600    | −0.1           | section headings, sheet and dialog titles  |
 | `subtitle`   | 16 / 24            | 600    | 0              | card and timetable slot titles             |
 | `body`       | 16 / 24            | 400    | 0              | paragraphs, list item titles               |
@@ -122,46 +126,36 @@ sans-serif`, as today; mobile: the platform font). Sizes in px on web and dp on 
 | `label`      | 14 / 20            | 600    | 0              | buttons, filter chips, segments, nav links |
 | `caption`    | 12 / 16            | 500    | 0              | hints, timestamps, tab labels, info chips  |
 
-To adopt it: a `type` group in `tokens.json`, generated into Tailwind's `--text-<name>` (with its
-`--line-height`) on web and a `type.<name>` style object on mobile. Mobile's `Muted` is 15 px today;
-in the scale it is `body` in `ink-muted`.
+Sizes in px on web (generated as rem, so they follow the browser's font size) and dp on mobile.
+Today's pages still use Tailwind sizes (`text-4xl`, `text-sm`) and mobile's `Title` and `Muted` their
+own; new work uses the scale, and the old uses move over as those screens are rebuilt.
 
-### One radius scale
+### Radius
 
-Mobile's scale, for both apps: `radius.sm` 8, `radius.md` 12, `radius.lg` 16, `radius.pill` 999.
+| Token         | px  | Web            | Used for                                          |
+| ------------- | --- | -------------- | ------------------------------------------------- |
+| `radius.sm`   | 8   | `rounded-sm`   | small buttons, segments inside a control          |
+| `radius.md`   | 12  | `rounded-md`   | buttons, inputs, banners, toasts, timetable slots |
+| `radius.lg`   | 16  | `rounded-lg`   | cards, sheets (top corners), dialogs              |
+| `radius.pill` | 999 | `rounded-full` | chips, badges, avatars, switches                  |
 
-| Token         | px  | Used for                                          |
-| ------------- | --- | ------------------------------------------------- |
-| `radius.sm`   | 8   | small buttons, segments inside a control          |
-| `radius.md`   | 12  | buttons, inputs, banners, toasts, timetable slots |
-| `radius.lg`   | 16  | cards, sheets (top corners), dialogs              |
-| `radius.pill` | 999 | chips, badges, avatars, switches                  |
+Tailwind's other radius names (`rounded-xl`, `rounded-2xl`, …) keep their defaults; use the four above.
 
-To adopt it on web: generate `--radius-sm`, `--radius-md`, `--radius-lg` and `--radius-pill` into
-`@theme`. Tailwind v4 reads its `rounded-*` utilities from those names, so `rounded-md` then means
-12 px, as `radius.md` does on mobile. That changes today's `rounded-md` (6 px) on the language
-switch, the draft notice, the home page's button and the Retry button; check them in that PR.
-Spacing needs no change: Tailwind's 4 px steps already include `space.*` (`1`, `2`, `3`, `4`, `6`,
-`8` = 4, 8, 12, 16, 24, 32).
+### Colors and contrast
 
-### New colors and contrast
+Every text color passes WCAG AA (4.5:1) on `page`, `raised` and `sunken`; the table is on the
+Foundations page.
 
-The token set "Proposed" in Penpot:
+| Token               | Value          | Why                                                                                   |
+| ------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| `color.danger`      | `#f87171`      | errors (Banner, Toast, Input) and destructive actions (Delete account); 6.8:1 on page |
+| `color.success`     | `#3ecf8e`      | success states (Banner, Toast, StatusLine "ok"); 9.5:1 on page                        |
+| `color.on-accent`   | `{color.page}` | text and icons on `accent` and `danger` fills: 5.9:1                                  |
+| `color.line-strong` | `#5d6777`      | control edges (inputs, outlined buttons): 3.3:1 on page, 3.0:1 on raised, WCAG's 3:1  |
 
-| Token             | Value          | Why                                                                                   |
-| ----------------- | -------------- | ------------------------------------------------------------------------------------- |
-| `color.danger`    | `#f87171`      | errors (Banner, Toast, Input) and destructive actions (Delete account); 6.8:1 on page |
-| `color.success`   | `#3ecf8e`      | success states (Banner, Toast, StatusLine "ok"); 9.5:1 on page                        |
-| `color.on-accent` | `{color.page}` | text and icons on `accent` and `danger` fills: 5.9:1                                  |
-
-Every text color passes WCAG AA (4.5:1) on `page`, `raised` and `sunken` (the table is on the
-Foundations page). Two findings:
-
-- **White on `accent` is 3.2:1 and fails AA.** The home page's call to action is `text-white` on
-  `bg-accent` today; it should use `on-accent` (dark text), as the Penpot Button does.
-- **`line-strong` against `page` is 1.8:1**, under WCAG's 3:1 for the edges of controls (inputs,
-  outlined buttons). The inputs also have a label and a `sunken` fill; a later token change could
-  lift `line-strong` to about `#5d6777` (3:1 on `raised`).
+- **Never white on `accent`:** it is 3.2:1 and fails AA. Text on an accent or danger fill is
+  `on-accent` (`text-on-accent`, `color.onAccent`), as the home page's button now is.
+- `line-strong` was `#3a404a` (1.8:1 against `page`) before #29.
 
 ### Layout
 
