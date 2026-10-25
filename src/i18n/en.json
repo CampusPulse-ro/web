@@ -14,9 +14,32 @@
   },
   "draftNotice": "Draft: this page is a placeholder and is not the final text.",
   "home": {
+    "overline": "For UPT students, made by students",
     "tagline": "Your UPT campus, in one app.",
+    "pitch": "CampusPulse puts your timetable, exams, the campus map and Campus Virtual in one place. The Android app is coming; the web app works now.",
+    "openWebApp": "Open the web app",
+    "googlePlayComingSoon": "Google Play · coming soon",
+    "notice": "A student project. Not an official UPT app.",
     "comingSoon": "Coming soon.",
-    "openWebApp": "Open the web app"
+    "featuresTitle": "Features",
+    "features": {
+      "timetable": {
+        "title": "Your timetable",
+        "description": "Your group's week, with odd and even weeks, holidays and your optional labs already applied."
+      },
+      "exams": {
+        "title": "Exams",
+        "description": "Dates and rooms for your exams, as soon as the faculty publishes them."
+      },
+      "map": {
+        "title": "Campus map",
+        "description": "Find B528A or 303CP without asking around."
+      },
+      "campusVirtual": {
+        "title": "Campus Virtual",
+        "description": "Your courses and deadlines from Campus Virtual, read-only."
+      }
+    }
   },
   "appPage": {
     "title": "Web app",

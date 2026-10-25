@@ -14,9 +14,32 @@
   },
   "draftNotice": "Ciornă: această pagină este provizorie și nu conține textul final.",
   "home": {
+    "overline": "Pentru studenții UPT, făcut de studenți",
     "tagline": "Campusul tău UPT, într-o singură aplicație.",
+    "pitch": "CampusPulse adună orarul, examenele, harta campusului și Campus Virtual într-un singur loc. Aplicația Android urmează să fie lansată; aplicația web funcționează deja.",
+    "openWebApp": "Deschide aplicația web",
+    "googlePlayComingSoon": "Google Play · în curând",
+    "notice": "Un proiect studențesc. Nu este o aplicație oficială UPT.",
     "comingSoon": "În curând.",
-    "openWebApp": "Deschide aplicația web"
+    "featuresTitle": "Funcționalități",
+    "features": {
+      "timetable": {
+        "title": "Orarul tău",
+        "description": "Săptămâna grupei tale, cu săptămâni pare și impare, sărbători și laboratoarele opționale deja aplicate."
+      },
+      "exams": {
+        "title": "Examene",
+        "description": "Datele și sălile examenelor tale, imediat ce facultatea le publică."
+      },
+      "map": {
+        "title": "Harta campusului",
+        "description": "Găsește B528A sau 303CP fără să întrebi în jur."
+      },
+      "campusVirtual": {
+        "title": "Campus Virtual",
+        "description": "Cursurile și termenele tale din Campus Virtual, doar pentru citire."
+      }
+    }
   },
   "appPage": {
     "title": "Aplicația web",
