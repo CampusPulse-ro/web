@@ -12,6 +12,25 @@
     "privacy": "Politica de confidențialitate",
     "deleteAccount": "Șterge-ți contul"
   },
+  "nav": {
+    "dashboard": "Panou",
+    "timetable": "Orar"
+  },
+  "auth": {
+    "signIn": "Autentificare",
+    "signInWithMicrosoft": "Conectare cu Microsoft",
+    "signOut": "Deconectare",
+    "signingIn": "Se conectează…",
+    "signingOut": "Se deconectează…",
+    "checkingSession": "Se verifică sesiunea…",
+    "signInRequiredTitle": "Autentificare necesară",
+    "signInRequiredDesc": "Te rugăm să te conectezi cu contul instituțional Microsoft (@student.upt.ro) pentru a accesa orarul și panoul de student.",
+    "studentAccountOnly": "Doar pentru conturi de student UPT",
+    "signedInAs": "Conectat ca",
+    "authError": "Eroare de autentificare",
+    "sessionExpired": "Sesiunea ta a expirat. Te rugăm să te reconectezi.",
+    "dismissError": "Închide eroarea"
+  },
   "draftNotice": "Ciornă: această pagină este provizorie și nu conține textul final.",
   "home": {
     "overline": "Pentru studenții UPT, făcut de studenți",
@@ -69,8 +88,14 @@
     }
   },
   "appPage": {
-    "title": "Aplicația web",
+    "title": "Panoul tău de student",
+    "greetingWithName": "Bine ai revenit, {{name}}",
+    "subtitle": "Cursurile, termenele și informațiile din campus, toate într-un singur loc.",
     "body": "Aici va fi versiunea web a CampusPulse. Deocamdată nu este nimic de văzut.",
+    "sampleClasses": {
+      "msa": "Sisteme și Aplicații Mobile",
+      "dsa": "Arhitectura Sistemelor Distribuite"
+    },
     "api": {
       "label": "API:",
       "checking": "se verifică…",
@@ -78,7 +103,76 @@
       "degraded": "funcționează, dar baza de date nu răspunde",
       "unreachable": "nu poate fi accesat acum",
       "retry": "Încearcă din nou"
+    },
+    "nav": {
+      "timetable": "Orar",
+      "timetableDesc": "Vezi cursurile tale",
+      "exams": "Examene",
+      "examsDesc": "Urmărește termenele",
+      "map": "Harta campusului",
+      "mapDesc": "Găsește săli și clădiri",
+      "campusVirtual": "Campus Virtual",
+      "campusVirtualDesc": "Resurse universitare"
+    },
+    "schedule": {
+      "title": "Orarul de azi",
+      "demoNotice": "Cursuri demonstrative — acestea nu sunt încă legate de orarul tău real.",
+      "viewAll": "Deschide orarul",
+      "roomPrefix": "Sala",
+      "sampleBadge": "Exemplu"
+    },
+    "comingUp": {
+      "title": "Urmează",
+      "exampleDeadline": "Exemplu termen",
+      "msaMilestone": "Etapă proiect SAM",
+      "msaNotice": "Termenele reale pentru teme nu sunt încă conectate.",
+      "exams": "Examene",
+      "examSchedule": "Programarea examenelor",
+      "examNotice": "Datele examenelor vor apărea aici când vor fi publicate."
+    },
+    "studySpaces": {
+      "title": "Spații de studiu",
+      "description": "Descoperă biblioteci și locuri pentru studiu. Gradul de ocupare nu este încă disponibil în timp real."
+    },
+    "campusVirtual": {
+      "title": "Campus Virtual",
+      "description": "Păstrează aproape materialele de curs universitare. Conexiunea directă la Campus Virtual urmează să fie configurată."
     }
+  },
+  "timetablePage": {
+    "overline": "CampusPulse",
+    "title": "Orarul meu",
+    "subtitle": "Vezi cursurile și organizează-ți săptămâna universitară.",
+    "backToDashboard": "Înapoi la panou",
+    "chooseDay": "Alege ziua",
+    "days": {
+      "monday": "Luni",
+      "tuesday": "Marți",
+      "wednesday": "Miercuri",
+      "thursday": "Joi",
+      "friday": "Vineri"
+    },
+    "scheduleTitle": "Programul de {{day}}",
+    "classesCount": "{{count}} ore",
+    "roomPrefix": "Sala",
+    "timeTo": "până la",
+    "types": {
+      "lecture": "Prelegere",
+      "course": "Curs",
+      "laboratory": "Laborator",
+      "seminar": "Seminar"
+    },
+    "courses": {
+      "msa": "Sisteme și Aplicații Mobile",
+      "dsa": "Arhitectura Sistemelor Distribuite",
+      "dbs": "Sisteme de Baze de Date",
+      "cn": "Rețele de Calculatoare",
+      "se": "Ingineria Programării",
+      "ai": "Inteligență Artificială"
+    },
+    "noClassesTitle": "Niciun curs programat",
+    "noClassesSubtitle": "Bucură-te de ziua liberă!",
+    "demoNotice": "Orar demonstrativ: doar cursuri de probă. Orele și sălile oficiale nu sunt încă sincronizate."
   },
   "privacy": {
     "title": "Politica de confidențialitate",

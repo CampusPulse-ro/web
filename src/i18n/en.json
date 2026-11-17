@@ -12,6 +12,25 @@
     "privacy": "Privacy policy",
     "deleteAccount": "Delete your account"
   },
+  "nav": {
+    "dashboard": "Dashboard",
+    "timetable": "Timetable"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signInWithMicrosoft": "Sign in with Microsoft",
+    "signOut": "Sign out",
+    "signingIn": "Signing in…",
+    "signingOut": "Signing out…",
+    "checkingSession": "Checking session…",
+    "signInRequiredTitle": "Sign in required",
+    "signInRequiredDesc": "Please sign in with your student Microsoft account (@student.upt.ro) to access your timetable and student dashboard.",
+    "studentAccountOnly": "UPT student accounts only",
+    "signedInAs": "Signed in as",
+    "authError": "Authentication error",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "dismissError": "Dismiss error"
+  },
   "draftNotice": "Draft: this page is a placeholder and is not the final text.",
   "home": {
     "overline": "For UPT students, made by students",
@@ -69,8 +88,14 @@
     }
   },
   "appPage": {
-    "title": "Web app",
+    "title": "Your student dashboard",
+    "greetingWithName": "Welcome back, {{name}}",
+    "subtitle": "Your classes, deadlines and campus information, all in one place.",
     "body": "The web version of CampusPulse will live here. Nothing to see yet.",
+    "sampleClasses": {
+      "msa": "Mobile Systems and Applications",
+      "dsa": "Distributed Systems Architecture"
+    },
     "api": {
       "label": "API:",
       "checking": "checking…",
@@ -78,7 +103,76 @@
       "degraded": "online, but its database isn't answering",
       "unreachable": "can't be reached right now",
       "retry": "Try again"
+    },
+    "nav": {
+      "timetable": "Timetable",
+      "timetableDesc": "View your classes",
+      "exams": "Exams",
+      "examsDesc": "Track your deadlines",
+      "map": "Campus map",
+      "mapDesc": "Find campus locations",
+      "campusVirtual": "Campus Virtual",
+      "campusVirtualDesc": "University resources"
+    },
+    "schedule": {
+      "title": "Today's schedule",
+      "demoNotice": "Sample classes — these are not connected to your real timetable yet.",
+      "viewAll": "Open timetable",
+      "roomPrefix": "Room",
+      "sampleBadge": "Sample"
+    },
+    "comingUp": {
+      "title": "Coming up",
+      "exampleDeadline": "Example deadline",
+      "msaMilestone": "MSA project milestone",
+      "msaNotice": "Real assignment deadlines are not connected yet.",
+      "exams": "Exams",
+      "examSchedule": "Your exam schedule",
+      "examNotice": "Exam dates will appear here when available."
+    },
+    "studySpaces": {
+      "title": "Study spaces",
+      "description": "Discover libraries and places to study. Live seat availability is not connected yet."
+    },
+    "campusVirtual": {
+      "title": "Campus Virtual",
+      "description": "Keep your university learning resources close at hand. A real Campus Virtual connection still needs to be configured."
     }
+  },
+  "timetablePage": {
+    "overline": "CampusPulse",
+    "title": "My Timetable",
+    "subtitle": "See your classes and plan your university week.",
+    "backToDashboard": "Back to dashboard",
+    "chooseDay": "Choose a day",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday"
+    },
+    "scheduleTitle": "{{day}} schedule",
+    "classesCount": "{{count}} classes",
+    "roomPrefix": "Room",
+    "timeTo": "to",
+    "types": {
+      "lecture": "Lecture",
+      "course": "Course",
+      "laboratory": "Laboratory",
+      "seminar": "Seminar"
+    },
+    "courses": {
+      "msa": "Mobile Systems and Applications",
+      "dsa": "Distributed Systems Architecture",
+      "dbs": "Database Systems",
+      "cn": "Computer Networks",
+      "se": "Software Engineering",
+      "ai": "Artificial Intelligence"
+    },
+    "noClassesTitle": "No classes scheduled",
+    "noClassesSubtitle": "Enjoy your free day!",
+    "demoNotice": "Demo timetable: sample classes only. Official class times and rooms are not connected yet."
   },
   "privacy": {
     "title": "Privacy policy",
