@@ -7,11 +7,18 @@
  * `ApiError` for anything else, so TanStack Query sees the failure.
  */
 import createClient from 'openapi-fetch'
+import { getAccessToken } from '../auth/msal'
 import { apiBase } from '../config'
 import type { paths } from './schema'
 
 /** Every request gives up after this long instead of hanging the screen. */
 const timeoutMs = 8000
+
+let onUnauthorizedHandler: (() => void) | null = null
+
+export function setOnUnauthorized(handler: (() => void) | null) {
+  onUnauthorizedHandler = handler
+}
 
 export const api = createClient<paths>({
   baseUrl: apiBase,
@@ -22,6 +29,37 @@ export const api = createClient<paths>({
       }),
     ),
 })
+
+/**
+ * Every request carries the signed-in student's access token when available.
+ * If the server responds with 401 on an authenticated call, the session is expired or revoked.
+ */
+api.use({
+  async onRequest({ request }) {
+    if (request.headers.has('Authorization')) return
+    try {
+      const token = await getAccessToken()
+      if (token) {
+        request.headers.set('Authorization', `Bearer ${token}`)
+      }
+    } catch {
+      // Continue without token if acquisition fails
+    }
+  },
+  async onResponse({ request, response }) {
+    if (response.status === 401 && request.headers.has('Authorization')) {
+      onUnauthorizedHandler?.()
+    }
+  },
+})
+
+/** `POST /me` with the token right after an interactive sign-in, creating or returning the account. */
+export async function createAccount(accessToken: string): Promise<void> {
+  const result = await api.POST('/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  unwrap(result)
+}
 
 /** The API answered, but not with a 2xx. `body` is what it sent back (parsed JSON, or text). */
 export class ApiError extends Error {

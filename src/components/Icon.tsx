@@ -7,6 +7,7 @@ export type IconName =
   | 'pin'
   | 'bell'
   | 'chevron-right'
+  | 'chevron-left'
   | 'external'
   | 'check'
   | 'search'
@@ -82,6 +83,7 @@ export function Icon({ name, size = 24, className }: IconProps) {
         </>
       )}
       {name === 'chevron-right' && <polyline points="9 18 15 12 9 6" />}
+      {name === 'chevron-left' && <polyline points="15 18 9 12 15 6" />}
       {name === 'external' && (
         <>
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />

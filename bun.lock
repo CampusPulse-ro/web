@@ -5,6 +5,8 @@
     "": {
       "name": "campuspulse-web",
       "dependencies": {
+        "@azure/msal-browser": "^5.26.0",
+        "@azure/msal-react": "^5.7.3",
         "@tanstack/react-query": "5.104.2",
         "i18next": "26.4.4",
         "openapi-fetch": "0.17.0",
@@ -30,6 +32,12 @@
     },
   },
   "packages": {
+    "@azure/msal-browser": ["@azure/msal-browser@5.26.0", "", { "dependencies": { "@azure/msal-common": "16.14.3" } }, "sha512-GYKRquzDZmZggCdStWy2bNJKnPui1upssSuznJgP+/h6Mb0ldkUkaGvaY6uSGGmZOm0CGiBQ3b5BiGy43BpXSg=="],
+
+    "@azure/msal-common": ["@azure/msal-common@16.14.3", "", {}, "sha512-tz3GvMrR9V/plb2lDdW8qaO8CPpfZevdExBKjltzzbAtyhK0eB2UIvji1aU+gkyHj3fxQ2ie+LNHyMXdmo8wOg=="],
+
+    "@azure/msal-react": ["@azure/msal-react@5.7.3", "", { "peerDependencies": { "@azure/msal-browser": "^5.26.0", "react": "^16.8.0 || ^17 || ^18 || ^19.2.1" } }, "sha512-FSlIchxNcLV+QUZpyZWnrrc9rG/q5REPDxN/0qoYqsIwZ4353NQGcnz88Hi2K42FodydxRoiTVSWA9UBLFWibg=="],
+
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 
     "@babel/helper-validator-identifier": ["@babel/helper-validator-identifier@7.29.7", "", {}, "sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg=="],
