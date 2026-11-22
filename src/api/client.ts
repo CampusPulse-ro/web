@@ -15,9 +15,16 @@ import type { paths } from './schema'
 const timeoutMs = 8000
 
 let onUnauthorizedHandler: (() => void) | null = null
+let onAccountGoneHandler: (() => void) | null = null
 
+/** Called when the API refuses the token (401): the session is over. */
 export function setOnUnauthorized(handler: (() => void) | null) {
   onUnauthorizedHandler = handler
+}
+
+/** Called when a `GET /me…` answers 404: the account was deleted, maybe from another device. */
+export function setOnAccountGone(handler: (() => void) | null) {
+  onAccountGoneHandler = handler
 }
 
 export const api = createClient<paths>({
@@ -47,8 +54,14 @@ api.use({
     }
   },
   async onResponse({ request, response }) {
-    if (response.status === 401 && request.headers.has('Authorization')) {
-      onUnauthorizedHandler?.()
+    if (!request.headers.has('Authorization')) return
+    if (response.status === 401) onUnauthorizedHandler?.()
+    else if (
+      response.status === 404 &&
+      request.method === 'GET' &&
+      /^\/me(\/|$)/.test(new URL(request.url).pathname)
+    ) {
+      onAccountGoneHandler?.()
     }
   },
 })

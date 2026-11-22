@@ -1,27 +1,30 @@
-import { type AccountInfo, BrowserAuthError, InteractionStatus } from '@azure/msal-browser'
+import { type AuthenticationResult, BrowserAuthError, InteractionStatus } from '@azure/msal-browser'
 import { MsalProvider, useIsAuthenticated, useMsal } from '@azure/msal-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { AuthContextValue, AuthUser } from './types'
-import { createAccount, setOnUnauthorized } from '../api/client'
+import { createAccount, setOnAccountGone, setOnUnauthorized } from '../api/client'
 import { loginRequest } from './config'
-import { msalInstance } from './msal'
-import { AuthContext } from './context'
+import { AUTH_ERRORS, AuthContext } from './context'
+import { forgetAccount, msalInstance, msalReady } from './msal'
+import type { AuthContextValue } from './types'
+import { userFromAccount } from './utils'
 
-function userFromAccount(account: AccountInfo | null): AuthUser | null {
-  if (!account) return null
-
-  const claims = account.idTokenClaims as Record<string, unknown> | undefined
-
-  const email =
-    (claims?.email as string) || (claims?.preferred_username as string) || account.username || ''
-
-  return {
-    oid: account.localAccountId || (claims?.oid as string) || '',
-    name: account.name || (claims?.name as string) || email,
-    email,
-    username: account.username,
+/**
+ * After an interactive sign-in only: `POST /me` creates the account (or returns it). Never on a
+ * page load or a silent refresh, so a browser that still holds tokens can't re-create an account
+ * the student deleted elsewhere (api README, "Sign-in"). If it fails, the sign-in didn't finish.
+ */
+async function finishSignIn(result: AuthenticationResult): Promise<void> {
+  if (result.account) msalInstance.setActiveAccount(result.account)
+  try {
+    await createAccount(result.accessToken)
+  } catch {
+    await forgetAccount()
+    throw new Error(AUTH_ERRORS.setupFailed)
   }
 }
+
+// A redirect sign-in returns on a fresh page load: finish it once, whatever React re-mounts.
+let redirectFinished: Promise<void> | null = null
 
 function InnerAuthProvider({ children }: { children: ReactNode }) {
   const { instance, inProgress, accounts } = useMsal()
@@ -30,76 +33,60 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
   const [isBusy, setIsBusy] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  // Ensure an active account is selected
+  useEffect(() => {
+    redirectFinished ??= msalReady.then((result) =>
+      result?.accessToken ? finishSignIn(result) : undefined,
+    )
+    redirectFinished.catch((err: unknown) =>
+      setError(err instanceof Error ? err : new Error(String(err))),
+    )
+  }, [])
+
+  // Make sure an account is active once MSAL knows of one.
   useEffect(() => {
     if (!instance.getActiveAccount() && accounts.length > 0) {
       instance.setActiveAccount(accounts[0])
     }
   }, [accounts, instance])
 
-  // Listen for 401 unauthorized responses from protected API calls
+  // The API refused a token (401) or has no account behind it (404 on /me): sign out here and say why.
   useEffect(() => {
-    setOnUnauthorized(() => {
-      setError(new Error('SESSION_EXPIRED'))
-    })
-
+    const signOutLocally = (reason: string) => {
+      void forgetAccount().finally(() => setError(new Error(reason)))
+    }
+    setOnUnauthorized(() => signOutLocally(AUTH_ERRORS.sessionExpired))
+    setOnAccountGone(() => signOutLocally(AUTH_ERRORS.accountGone))
     return () => {
       setOnUnauthorized(null)
+      setOnAccountGone(null)
     }
   }, [])
 
-  const activeAccount = instance.getActiveAccount() ?? (accounts.length > 0 ? accounts[0] : null)
-
+  const activeAccount = instance.getActiveAccount() ?? accounts[0] ?? null
   const user = useMemo(() => userFromAccount(activeAccount), [activeAccount])
 
   const signIn = useCallback(async () => {
-  if (inProgress !== InteractionStatus.None || isBusy) {
-    return
-  }
+    if (inProgress !== InteractionStatus.None || isBusy) return
     setIsBusy(true)
     setError(null)
-
     try {
-      const result = await instance.loginPopup({
-        ...loginRequest,
-        prompt: 'select_account',
-      })
-      console.log('[auth] Login result:', result)
-      console.log('[auth] Account:', result.account)
-      console.log('[auth] Accounts after login:', instance.getAllAccounts())
-
-      if (result.account) {
-  instance.setActiveAccount(result.account)
-  console.log('[auth] Active account:', instance.getActiveAccount())
-}
-
-      // Call POST /me right after interactive sign-in
-      if (result.accessToken) {
-        try {
-          await createAccount(result.accessToken)
-        } catch (apiErr) {
-          console.warn('[auth] POST /me notice:', apiErr)
-        }
-      }
+      const result = await instance.loginPopup({ ...loginRequest, prompt: 'select_account' })
+      await finishSignIn(result)
     } catch (err) {
       if (
         err instanceof BrowserAuthError &&
         (err.errorCode === 'popup_window_error' || err.errorCode === 'empty_window_error')
       ) {
-        await instance.loginRedirect({
-          ...loginRequest,
-          prompt: 'select_account',
-        })
+        // The popup was blocked: sign in by redirect instead; the page that returns finishes it.
+        await instance.loginRedirect({ ...loginRequest, prompt: 'select_account' })
         return
       }
-
       if (
         err instanceof BrowserAuthError &&
         (err.errorCode === 'user_cancelled' || err.errorCode === 'user_cancelled_interaction')
       ) {
         return
       }
-
       setError(err instanceof Error ? err : new Error(String(err)))
     } finally {
       setIsBusy(false)
@@ -109,22 +96,14 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     setIsBusy(true)
     setError(null)
-
     try {
       const account = instance.getActiveAccount() ?? accounts[0]
-
       if (account) {
-        await instance.logoutPopup({
-          account,
-          mainWindowRedirectUri: window.location.origin,
-        })
+        await instance.logoutPopup({ account, mainWindowRedirectUri: window.location.origin })
       }
     } catch {
-      try {
-        await instance.logoutRedirect()
-      } catch (logoutErr) {
-        setError(logoutErr instanceof Error ? logoutErr : new Error(String(logoutErr)))
-      }
+      // The popup failed (blocked or closed): still forget the account on this device.
+      await forgetAccount()
     } finally {
       setIsBusy(false)
     }
@@ -132,12 +111,10 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
 
   const clearError = useCallback(() => setError(null), [])
 
-  const isLoading = inProgress !== InteractionStatus.None
-
   const value = useMemo<AuthContextValue>(
     () => ({
       isAuthenticated: isMsalAuthenticated && user !== null,
-      isLoading,
+      isLoading: inProgress !== InteractionStatus.None,
       isBusy,
       user,
       error,
@@ -145,15 +122,13 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
       signOut,
       clearError,
     }),
-    [isMsalAuthenticated, user, isLoading, isBusy, error, signIn, signOut, clearError],
+    [isMsalAuthenticated, user, inProgress, isBusy, error, signIn, signOut, clearError],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-/** Root AuthProvider initializing MSAL before mounting providers. */
-
-/** Root AuthProvider. MsalProvider handles MSAL initialization and redirects. */
+/** MsalProvider plus the app's own sign-in state (`useAuth`). */
 export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <MsalProvider instance={msalInstance}>
@@ -161,4 +136,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </MsalProvider>
   )
 }
-

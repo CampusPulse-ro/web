@@ -29,7 +29,9 @@
     "signedInAs": "Conectat ca",
     "authError": "Eroare de autentificare",
     "sessionExpired": "Sesiunea ta a expirat. Te rugăm să te reconectezi.",
-    "dismissError": "Închide eroarea"
+    "dismissError": "Închide eroarea",
+    "accountGone": "Contul tău a fost șters, așa că ai fost deconectat.",
+    "setupFailed": "Conectarea nu s-a încheiat: serverul CampusPulse nu ți-a putut pregăti contul. Încearcă din nou."
   },
   "draftNotice": "Ciornă: această pagină este provizorie și nu conține textul final.",
   "home": {

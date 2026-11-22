@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '../components/Icon'
-import { useAuth } from './context'
+import { AUTH_ERRORS, useAuth } from './context'
 export interface ProtectedRouteProps {
   children: ReactNode
 }
@@ -22,7 +22,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    const isSessionExpired = error?.message === 'SESSION_EXPIRED'
+    // A known reason gets its own sentence; anything else shows MSAL's message under a generic title.
+    const known: Record<string, string> = {
+      [AUTH_ERRORS.sessionExpired]: t('auth.sessionExpired'),
+      [AUTH_ERRORS.accountGone]: t('auth.accountGone'),
+      [AUTH_ERRORS.setupFailed]: t('auth.setupFailed'),
+    }
+    const knownMessage = error ? known[error.message] : undefined
 
     return (
       <div className="mx-auto flex max-w-md flex-col items-center rounded-lg border border-line bg-raised p-8 text-center sm:p-10">
@@ -39,9 +45,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         {error && (
           <div className="mb-5 w-full rounded-md border border-danger/30 bg-danger/10 p-3.5 text-left text-body-small text-danger">
             <div className="flex items-start justify-between gap-2">
-              <span className="font-semibold">
-                {isSessionExpired ? t('auth.sessionExpired') : t('auth.authError')}
-              </span>
+              <span className="font-semibold">{knownMessage ?? t('auth.authError')}</span>
               <button
                 type="button"
                 onClick={clearError}
@@ -51,7 +55,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                 {'✕'}
               </button>
             </div>
-            {!isSessionExpired && error.message && (
+            {!knownMessage && error.message && (
               <p className="mt-1 mb-0 text-caption opacity-90">{error.message}</p>
             )}
           </div>

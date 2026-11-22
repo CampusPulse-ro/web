@@ -29,7 +29,9 @@
     "signedInAs": "Signed in as",
     "authError": "Authentication error",
     "sessionExpired": "Your session has expired. Please sign in again.",
-    "dismissError": "Dismiss error"
+    "dismissError": "Dismiss error",
+    "accountGone": "Your account was deleted, so you've been signed out.",
+    "setupFailed": "Sign-in didn't finish: the CampusPulse server couldn't set up your account. Try again."
   },
   "draftNotice": "Draft: this page is a placeholder and is not the final text.",
   "home": {
