@@ -155,7 +155,9 @@
       "friday": "Friday"
     },
     "scheduleTitle": "{{day}} schedule",
-    "classesCount": "{{count}} classes",
+    "classesCount_one": "{{count}} class",
+    "classesCount_few": "{{count}} classes",
+    "classesCount_other": "{{count}} classes",
     "roomPrefix": "Room",
     "timeTo": "to",
     "types": {

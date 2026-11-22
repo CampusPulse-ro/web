@@ -1,51 +1,11 @@
-import { QueryClientProvider } from '@tanstack/react-query'
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import './index.css'
-// Initialises translations synchronously, before the first render.
-import './i18n'
-import { queryClient } from './api/queryClient'
-import { AuthProvider, ProtectedRoute } from './auth'
-import { Layout } from './Layout'
-import { AccountDeletionPage } from './pages/AccountDeletionPage'
-import { AppPage } from './pages/AppPage'
-import { HomePage } from './pages/HomePage'
-import { NotFoundPage } from './pages/NotFoundPage'
-import { PrivacyPage } from './pages/PrivacyPage'
-import { TimetablePage } from './pages/TimetablePage'
+import { runRedirectBridge, urlCarriesAuthResponse } from './auth/bridge'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route
-                path="app"
-                element={
-                  <ProtectedRoute>
-                    <AppPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="timetable"
-                element={
-                  <ProtectedRoute>
-                    <TimetablePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="privacy" element={<PrivacyPage />} />
-              <Route path="account-deletion" element={<AccountDeletionPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
-  </StrictMode>,
-)
+// A sign-in answer from Microsoft goes to MSAL's redirect bridge, not the app (see auth/bridge.ts).
+// If the bridge can't use it, the app starts anyway and shows the sign-in screen.
+async function start() {
+  if (urlCarriesAuthResponse() && (await runRedirectBridge())) return
+  const { renderApp } = await import('./App')
+  renderApp()
+}
+
+void start()

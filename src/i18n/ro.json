@@ -155,7 +155,9 @@
       "friday": "Vineri"
     },
     "scheduleTitle": "Programul de {{day}}",
-    "classesCount": "{{count}} ore",
+    "classesCount_one": "{{count}} oră",
+    "classesCount_few": "{{count}} ore",
+    "classesCount_other": "{{count}} de ore",
     "roomPrefix": "Sala",
     "timeTo": "până la",
     "types": {

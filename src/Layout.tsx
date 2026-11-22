@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { getInitials, useAuth } from './auth'
 import { Icon } from './components/Icon'
 import { LanguageSwitch } from './components/LanguageSwitch'
@@ -7,6 +7,13 @@ import { LanguageSwitch } from './components/LanguageSwitch'
 export function Layout() {
   const { t } = useTranslation()
   const { isAuthenticated, user, signIn, signOut, isBusy } = useAuth()
+  const navigate = useNavigate()
+
+  // Signing in from the header lands on the dashboard, where a failed sign-in shows its reason.
+  const signInFromHeader = () => {
+    navigate('/app')
+    void signIn()
+  }
 
   const userInitials = getInitials(user?.name || user?.email || '')
 
@@ -78,7 +85,7 @@ export function Layout() {
           ) : (
             <button
               type="button"
-              onClick={() => void signIn()}
+              onClick={signInFromHeader}
               disabled={isBusy}
               className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 text-label font-semibold text-on-accent transition hover:opacity-90 focus:outline-2 focus:outline-offset-2 focus:outline-accent disabled:opacity-50"
             >
