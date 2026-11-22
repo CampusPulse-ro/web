@@ -12,15 +12,92 @@
     "privacy": "Privacy policy",
     "deleteAccount": "Delete your account"
   },
+  "nav": {
+    "dashboard": "Dashboard",
+    "timetable": "Timetable"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signInWithMicrosoft": "Sign in with Microsoft",
+    "signOut": "Sign out",
+    "signingIn": "Signing in…",
+    "signingOut": "Signing out…",
+    "checkingSession": "Checking session…",
+    "signInRequiredTitle": "Sign in required",
+    "signInRequiredDesc": "Please sign in with your student Microsoft account (@student.upt.ro) to access your timetable and student dashboard.",
+    "studentAccountOnly": "UPT student accounts only",
+    "signedInAs": "Signed in as",
+    "authError": "Authentication error",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "dismissError": "Dismiss error",
+    "accountGone": "Your account was deleted, so you've been signed out.",
+    "setupFailed": "Sign-in didn't finish: the CampusPulse server couldn't set up your account. Try again."
+  },
   "draftNotice": "Draft: this page is a placeholder and is not the final text.",
   "home": {
+    "overline": "For UPT students, made by students",
     "tagline": "Your UPT campus, in one app.",
+    "pitch": "CampusPulse puts your timetable, exams, the campus map and Campus Virtual in one place. The Android app is coming; the web app works now.",
+    "openWebApp": "Open the web app",
+    "googlePlayComingSoon": "Google Play · coming soon",
+    "notice": "A student project. Not an official UPT app.",
     "comingSoon": "Coming soon.",
-    "openWebApp": "Open the web app"
+    "featuresTitle": "Features",
+    "preview": {
+      "overline": "Experience CampusPulse",
+      "title": "Built for your daily student life at UPT",
+      "subtitle": "See how your classes, room locations, and deadlines look in one unified, distraction-free view.",
+      "todayScheduleTitle": "Today's Schedule",
+      "todayScheduleMeta": "Monday · Week 4 (Even)",
+      "groupBadge": "CTI-EN Year 4 · Gr. 1.1",
+      "statusNowWithTime": "Now · 10:00 – 12:00",
+      "statusNextWithTime": "Next · 12:00 – 14:00",
+      "statusNow": "Now",
+      "statusNext": "Next",
+      "msaTitle": "Mobile Systems and Applications",
+      "msaType": "Laboratory",
+      "msaRoom": "Room B528A · Electro",
+      "msaTeacher": "Conf. dr. ing. Sebastian Boghiu",
+      "dsaTitle": "Distributed Systems Architecture",
+      "dsaType": "Course",
+      "dsaRoom": "Room A101 · Electro",
+      "insightsTitle": "Campus Insights & Deadlines",
+      "deadlineTitle": "Campus Virtual Assignment",
+      "deadlineItem": "MSA Project Milestone 1",
+      "deadlineTime": "Due in 3 days",
+      "studySpaceTitle": "UPT Central Library",
+      "studySpaceItem": "Floor 2 · Silent Study Area",
+      "studySpaceCrowd": "Available seats (45% full)",
+      "exploreAppCta": "Open interactive web app"
+    },
+    "features": {
+      "timetable": {
+        "title": "Your timetable",
+        "description": "Your group's week, with odd and even weeks, holidays and your optional labs already applied."
+      },
+      "exams": {
+        "title": "Exams",
+        "description": "Dates and rooms for your exams, as soon as the faculty publishes them."
+      },
+      "map": {
+        "title": "Campus map",
+        "description": "Find B528A or 303CP without asking around."
+      },
+      "campusVirtual": {
+        "title": "Campus Virtual",
+        "description": "Your courses and deadlines from Campus Virtual, read-only."
+      }
+    }
   },
   "appPage": {
-    "title": "Web app",
+    "title": "Your student dashboard",
+    "greetingWithName": "Welcome back, {{name}}",
+    "subtitle": "Your classes, deadlines and campus information, all in one place.",
     "body": "The web version of CampusPulse will live here. Nothing to see yet.",
+    "sampleClasses": {
+      "msa": "Mobile Systems and Applications",
+      "dsa": "Distributed Systems Architecture"
+    },
     "api": {
       "label": "API:",
       "checking": "checking…",
@@ -28,7 +105,78 @@
       "degraded": "online, but its database isn't answering",
       "unreachable": "can't be reached right now",
       "retry": "Try again"
+    },
+    "nav": {
+      "timetable": "Timetable",
+      "timetableDesc": "View your classes",
+      "exams": "Exams",
+      "examsDesc": "Track your deadlines",
+      "map": "Campus map",
+      "mapDesc": "Find campus locations",
+      "campusVirtual": "Campus Virtual",
+      "campusVirtualDesc": "University resources"
+    },
+    "schedule": {
+      "title": "Today's schedule",
+      "demoNotice": "Sample classes — these are not connected to your real timetable yet.",
+      "viewAll": "Open timetable",
+      "roomPrefix": "Room",
+      "sampleBadge": "Sample"
+    },
+    "comingUp": {
+      "title": "Coming up",
+      "exampleDeadline": "Example deadline",
+      "msaMilestone": "MSA project milestone",
+      "msaNotice": "Real assignment deadlines are not connected yet.",
+      "exams": "Exams",
+      "examSchedule": "Your exam schedule",
+      "examNotice": "Exam dates will appear here when available."
+    },
+    "studySpaces": {
+      "title": "Study spaces",
+      "description": "Discover libraries and places to study. Live seat availability is not connected yet."
+    },
+    "campusVirtual": {
+      "title": "Campus Virtual",
+      "description": "Keep your university learning resources close at hand. A real Campus Virtual connection still needs to be configured."
     }
+  },
+  "timetablePage": {
+    "overline": "CampusPulse",
+    "title": "My Timetable",
+    "subtitle": "See your classes and plan your university week.",
+    "backToDashboard": "Back to dashboard",
+    "chooseDay": "Choose a day",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday"
+    },
+    "scheduleTitle": "{{day}} schedule",
+    "classesCount_one": "{{count}} class",
+    "classesCount_few": "{{count}} classes",
+    "classesCount_other": "{{count}} classes",
+    "roomPrefix": "Room",
+    "timeTo": "to",
+    "types": {
+      "lecture": "Lecture",
+      "course": "Course",
+      "laboratory": "Laboratory",
+      "seminar": "Seminar"
+    },
+    "courses": {
+      "msa": "Mobile Systems and Applications",
+      "dsa": "Distributed Systems Architecture",
+      "dbs": "Database Systems",
+      "cn": "Computer Networks",
+      "se": "Software Engineering",
+      "ai": "Artificial Intelligence"
+    },
+    "noClassesTitle": "No classes scheduled",
+    "noClassesSubtitle": "Enjoy your free day!",
+    "demoNotice": "Demo timetable: sample classes only. Official class times and rooms are not connected yet."
   },
   "privacy": {
     "title": "Privacy policy",
