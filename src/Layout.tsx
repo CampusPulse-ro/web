@@ -50,7 +50,7 @@ export function Layout() {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitch />
 
           {user ? (
@@ -58,7 +58,7 @@ export function Layout() {
           ) : (
             location.pathname !== '/sign-in' && (
               <Link to={signInHref} className={buttonClasses('primary', 'sm')}>
-                <Icon name="user" size={16} />
+                <Icon name="user" size={16} className="max-sm:hidden" />
                 <span>{t('auth.signIn')}</span>
               </Link>
             )
@@ -132,7 +132,7 @@ function AccountMenu({ user }: { user: Me }) {
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
-        className="flex h-11 cursor-pointer items-center gap-2 rounded-full py-1 pr-2 pl-1 text-ink transition hover:bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="flex h-11 cursor-pointer items-center gap-2 rounded-full p-1 text-ink transition hover:bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:pr-2"
       >
         <span
           aria-hidden="true"
@@ -142,7 +142,7 @@ function AccountMenu({ user }: { user: Me }) {
         </span>
         <span className="hidden max-w-40 truncate text-label sm:inline">{user.displayName}</span>
         <span className="sr-only">{t('nav.accountMenu')}</span>
-        <Icon name="chevron-down" size={16} className="text-ink-muted" />
+        <Icon name="chevron-down" size={16} className="text-ink-muted max-sm:hidden" />
       </button>
 
       {open && (

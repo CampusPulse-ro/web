@@ -129,10 +129,6 @@ export function DeadlinesPage() {
         <div className="flex flex-col items-start gap-3 py-6">
           <h2 className="m-0 text-subtitle text-ink">{t('deadlines.emptyTitle')}</h2>
           <p className="m-0 text-body-small text-ink-muted">{t('deadlines.emptyBody')}</p>
-          <Button variant="secondary" onClick={() => setEditing({ mode: 'add' })}>
-            <Icon name="plus" size={18} />
-            {t('deadlines.add')}
-          </Button>
         </div>
       ) : (
         <div className="flex flex-col gap-8">

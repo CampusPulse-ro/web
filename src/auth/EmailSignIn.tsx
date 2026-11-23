@@ -70,8 +70,12 @@ export function EmailSignIn() {
 
   const refusalOf = (err: unknown): Refusal => {
     if (err instanceof ApiError) {
-      const after = err.retryAfterSeconds
-        ? format.time(Date.now() + err.retryAfterSeconds * 1000)
+      // A wait of hours (the daily limit) needs the day too, not only the time.
+      const seconds = err.retryAfterSeconds
+      const after = seconds
+        ? seconds > 12 * 3600
+          ? format.dateTime(Date.now() + seconds * 1000)
+          : format.time(Date.now() + seconds * 1000)
         : null
       switch (err.type) {
         case 'invalid-email':
@@ -228,7 +232,7 @@ export function EmailSignIn() {
           t={t}
           i18nKey="signIn.email.codeSentTo"
           values={{ email: step.email }}
-          components={{ email: <strong className="font-semibold break-all text-ink" /> }}
+          components={{ email: <strong className="font-semibold break-words text-ink" /> }}
         />
       </p>
 
@@ -268,7 +272,7 @@ export function EmailSignIn() {
         {t('signIn.email.verify')}
       </Button>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col items-start gap-1">
         <Button
           variant="ghost"
           size="sm"
@@ -283,7 +287,7 @@ export function EmailSignIn() {
         <Button
           variant="ghost"
           size="sm"
-          className="-mr-3"
+          className="-ml-3"
           disabled={secondsToResend > 0}
           loading={send.isPending}
           onClick={() => sendCode(step.email, true)}

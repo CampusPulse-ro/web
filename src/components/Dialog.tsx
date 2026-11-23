@@ -21,6 +21,9 @@ export function Dialog({ open, onClose, title, description, children, busy = fal
   const ref = useRef<HTMLDialogElement>(null)
   // Only a click that also started outside the panel closes it (not a text selection dragged out).
   const pressedOutside = useRef(false)
+  // Where focus was when it opened. The browser puts it back on close, but not when the focused
+  // control inside was removed first (the panel unmounts with `open`), so this does it then.
+  const opener = useRef<HTMLElement | null>(null)
   const titleId = useId()
   const descriptionId = useId()
 
@@ -28,6 +31,7 @@ export function Dialog({ open, onClose, title, description, children, busy = fal
     const dialog = ref.current
     if (!dialog) return
     if (open && !dialog.open) {
+      opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
       dialog.showModal()
       const first =
         dialog.querySelector<HTMLElement>('[data-autofocus]') ??
@@ -35,6 +39,14 @@ export function Dialog({ open, onClose, title, description, children, busy = fal
       first?.focus()
     } else if (!open && dialog.open) {
       dialog.close()
+      const back = opener.current
+      opener.current = null
+      if (
+        back?.isConnected &&
+        (document.activeElement === document.body || !document.activeElement)
+      ) {
+        back.focus()
+      }
     }
   }, [open])
 
