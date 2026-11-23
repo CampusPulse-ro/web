@@ -88,7 +88,11 @@ export function AssignmentRow({
 
 /** The assignment's detail: when, what Moodle says, and the limits up front. */
 export function AssignmentDetail({ a }: { a: Assignment }) {
-  const { now, looks } = useProto()
+  const { data, now, looks } = useProto()
+  // the made-up assignments have no Campus Virtual id, so link the course page instead
+  const courseUrl = data.timetable.occurrences.find(
+    (o) => o.shortName === a.shortName,
+  )?.campusVirtualUrl
   const look = looks.get(a.shortName)
   const due = wallOf(a.dueAt)
   const cut = cutoffState(a, now)
@@ -185,15 +189,17 @@ export function AssignmentDetail({ a }: { a: Assignment }) {
         Submitting from the app isn’t part of this prototype. In the app it asks for confirmation,
         checks these limits first and waits for Campus Virtual to confirm.
       </p>
-      <a
-        href={`https://cv.upt.ro/mod/assign/view.php?id=${a.id}`}
-        target="_blank"
-        rel="noreferrer"
-        className="cx-btn cx-btn--tonal cx-btn--lg cx-state mt-5 w-full"
-      >
-        <Icon name="openInNew" size={20} />
-        Open in Campus Virtual
-      </a>
+      {courseUrl && (
+        <a
+          href={courseUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="cx-btn cx-btn--tonal cx-btn--lg cx-state mt-5 w-full"
+        >
+          <Icon name="openInNew" size={20} />
+          Open the course in Campus Virtual
+        </a>
+      )}
     </div>
   )
 }
