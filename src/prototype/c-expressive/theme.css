@@ -1,0 +1,994 @@
+/*
+ * Prototype C, "Native Expressive": Material 3 Expressive, rebuilt for our React + Tailwind stack.
+ *
+ * Colour: generated once with @material/material-color-utilities 0.4.0 from our accent #4F8CFF
+ * (dark scheme, M3 2025 "Expressive" colour spec, tonal-spot surfaces, primary palette at chroma 48
+ * so the brand blue survives, tertiary = the SchemeFidelity complement, so "live" has a hue of its
+ * own). Subject colours are M3 custom colours harmonized to the seed (Blend.harmonize, tones
+ * 80/20/30/90). "Free" is the token's success green, not harmonized. Every text pair used here is
+ * at least 4.5:1 (on-surface-variant on surface-container-highest is the lowest, 6.6:1).
+ *
+ * Motion: the M3 Expressive spring tokens (spatial 0.6/800, 0.8/380, 0.8/200; effects 1/3800,
+ * 1/1600, 1/800) as CSS linear() curves, sampled from the spring. JS uses the same springs (motion.ts).
+ *
+ * Everything is scoped to .cx so nothing leaks into the site.
+ */
+@layer components {
+  .cx {
+    --md-sys-color-primary: #afc6ff;
+    --md-sys-color-on-primary: #083d88;
+    --md-sys-color-primary-container: #26509b;
+    --md-sys-color-on-primary-container: #dae3ff;
+    --md-sys-color-secondary: #bfc6dc;
+    --md-sys-color-on-secondary: #394052;
+    --md-sys-color-secondary-container: #343b4d;
+    --md-sys-color-on-secondary-container: #b8bfd5;
+    --md-sys-color-tertiary: #ffa046;
+    --md-sys-color-on-tertiary: #532a00;
+    --md-sys-color-tertiary-container: #f68f24;
+    --md-sys-color-on-tertiary-container: #432100;
+    --md-sys-color-surface: #0d0e12;
+    --md-sys-color-surface-dim: #0d0e12;
+    --md-sys-color-surface-bright: #292c34;
+    --md-sys-color-surface-container-lowest: #000000;
+    --md-sys-color-surface-container-low: #111318;
+    --md-sys-color-surface-container: #17191f;
+    --md-sys-color-surface-container-high: #1d1f26;
+    --md-sys-color-surface-container-highest: #23262d;
+    --md-sys-color-on-surface: #e4e5f0;
+    --md-sys-color-on-surface-variant: #a9abb5;
+    --md-sys-color-outline: #73757f;
+    --md-sys-color-outline-variant: #454850;
+    --md-sys-color-error: #fa746f;
+    --md-sys-color-on-error: #490006;
+    --md-sys-color-error-container: #871f21;
+    --md-sys-color-on-error-container: #ff9993;
+    --md-sys-color-inverse-surface: #faf8fe;
+    --md-sys-color-inverse-on-surface: #545559;
+    --md-sys-color-inverse-primary: #355da9;
+    --md-sys-color-scrim: #000000;
+    --md-sys-color-primary-fixed: #88adff;
+    --md-sys-color-primary-fixed-dim: #7a9ff0;
+    --md-sys-color-on-primary-fixed: #001335;
+    --md-sys-color-on-primary-fixed-variant: #00347a;
+    --md-sys-color-tertiary-fixed: #f68f24;
+    --md-sys-color-tertiary-fixed-dim: #e58214;
+    --md-sys-color-on-tertiary-fixed: #170800;
+    --md-sys-color-on-tertiary-fixed-variant: #502900;
+    --cx-s1-color: #fcba66;
+    --cx-s1-on-color: #472a00;
+    --cx-s1-container: #653e00;
+    --cx-s1-on-container: #ffddb8;
+    --cx-s2-color: #90d6a2;
+    --cx-s2-on-color: #00391b;
+    --cx-s2-container: #03522a;
+    --cx-s2-on-container: #abf3bc;
+    --cx-s3-color: #75d4e4;
+    --cx-s3-on-color: #00363d;
+    --cx-s3-container: #004f58;
+    --cx-s3-on-container: #99f0ff;
+    --cx-s4-color: #98cbff;
+    --cx-s4-on-color: #003354;
+    --cx-s4-container: #004a78;
+    --cx-s4-on-container: #cfe5ff;
+    --cx-s5-color: #bec2ff;
+    --cx-s5-on-color: #242968;
+    --cx-s5-container: #3b4180;
+    --cx-s5-on-container: #e0e0ff;
+    --cx-s6-color: #e2b6fc;
+    --cx-s6-on-color: #43205b;
+    --cx-s6-container: #5b3774;
+    --cx-s6-on-container: #f3daff;
+    --cx-s7-color: #ffb1c2;
+    --cx-s7-on-color: #581a2d;
+    --cx-s7-container: #743043;
+    --cx-s7-on-container: #ffd9df;
+    --cx-s8-color: #78d7c1;
+    --cx-s8-on-color: #00382e;
+    --cx-s8-container: #005144;
+    --cx-s8-on-container: #94f4dd;
+    --cx-free-color: #51df9c;
+    --cx-free-on-color: #003822;
+    --cx-free-container: #005233;
+    --cx-free-on-container: #71fcb6;
+
+    /* the "live" role: what is happening now or next (tertiary), and only that */
+    --cx-live: var(--md-sys-color-tertiary);
+    --cx-live-container: var(--md-sys-color-tertiary-container);
+    --cx-on-live-container: var(--md-sys-color-on-tertiary-container);
+
+    /* M3 Expressive shape scale */
+    --cx-shape-xs: 4px;
+    --cx-shape-sm: 8px;
+    --cx-shape-md: 12px;
+    --cx-shape-lg: 16px;
+    --cx-shape-lg-inc: 20px;
+    --cx-shape-xl: 28px;
+    --cx-shape-xl-inc: 32px;
+    --cx-shape-xxl: 48px;
+    --cx-shape-full: 999px;
+
+    /* M3 Expressive springs as CSS easing (see the header) */
+    --cx-motion-spatial-fast: linear(
+      0,
+      0.074,
+      0.241,
+      0.442,
+      0.639,
+      0.806,
+      0.933,
+      1.017,
+      1.068,
+      1.09,
+      1.092,
+      1.081,
+      1.063,
+      1.045,
+      1.027,
+      1.013,
+      1.003,
+      0.996,
+      0.993,
+      0.991,
+      0.992,
+      0.993,
+      0.995,
+      0.996,
+      1
+    );
+    --cx-motion-spatial-fast-duration: 346ms;
+    --cx-motion-spatial-default: linear(
+      0,
+      0.05,
+      0.16,
+      0.296,
+      0.435,
+      0.565,
+      0.681,
+      0.774,
+      0.848,
+      0.904,
+      0.945,
+      0.974,
+      0.993,
+      1.005,
+      1.011,
+      1.014,
+      1.014,
+      1.013,
+      1.012,
+      1.01,
+      1.008,
+      1.006,
+      1.004,
+      1.003,
+      1
+    );
+    --cx-motion-spatial-default-duration: 410ms;
+    --cx-motion-effects-fast: linear(
+      0,
+      0.059,
+      0.178,
+      0.314,
+      0.434,
+      0.55,
+      0.649,
+      0.723,
+      0.788,
+      0.839,
+      0.878,
+      0.906,
+      0.93,
+      0.948,
+      0.96,
+      0.97,
+      0.978,
+      0.984,
+      0.988,
+      0.991,
+      0.993,
+      0.995,
+      0.996,
+      0.997,
+      1
+    );
+    --cx-motion-effects-fast-duration: 141ms;
+    --cx-motion-effects-default: linear(
+      0,
+      0.055,
+      0.168,
+      0.3,
+      0.428,
+      0.542,
+      0.64,
+      0.72,
+      0.784,
+      0.835,
+      0.875,
+      0.905,
+      0.929,
+      0.946,
+      0.959,
+      0.97,
+      0.978,
+      0.983,
+      0.988,
+      0.991,
+      0.993,
+      0.995,
+      0.996,
+      0.997,
+      1
+    );
+    --cx-motion-effects-default-duration: 215ms;
+
+    --cx-font: 'Roboto Flex Variable', Roboto, system-ui, sans-serif;
+
+    font-family: var(--cx-font);
+    font-optical-sizing: auto;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Type roles (M3 2025 scale on Roboto Flex). -e = emphasized. ─────────────────────────── */
+  .cx .t-display-l {
+    font-size: 57px;
+    line-height: 64px;
+    letter-spacing: -0.25px;
+    font-weight: 400;
+  }
+  .cx .t-display-m {
+    font-size: 45px;
+    line-height: 52px;
+    font-weight: 400;
+  }
+  .cx .t-display-s {
+    font-size: 36px;
+    line-height: 44px;
+    font-weight: 400;
+  }
+  .cx .t-headline-l {
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 400;
+  }
+  .cx .t-headline-m {
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 400;
+  }
+  .cx .t-headline-s {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 400;
+  }
+  .cx .t-title-l {
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 400;
+  }
+  .cx .t-title-m {
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0.15px;
+    font-weight: 500;
+  }
+  .cx .t-title-s {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.1px;
+    font-weight: 500;
+  }
+  .cx .t-body-l {
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0.5px;
+    font-weight: 400;
+  }
+  .cx .t-body-m {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.25px;
+    font-weight: 400;
+  }
+  .cx .t-body-s {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.4px;
+    font-weight: 400;
+  }
+  .cx .t-label-l {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.1px;
+    font-weight: 500;
+  }
+  .cx .t-label-m {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .cx .t-label-s {
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .cx .t-e {
+    font-weight: 600;
+  }
+  .cx .t-e.t-title-m,
+  .cx .t-e.t-title-s,
+  .cx .t-e.t-label-l,
+  .cx .t-e.t-label-m,
+  .cx .t-e.t-label-s {
+    font-weight: 700;
+  }
+  /* Roboto Flex's width axis: room codes and countdowns get the condensed cut, so "OROLOGERIE"
+   fits a week-grid column without breaking */
+  .cx .t-narrow {
+    font-stretch: 78%;
+  }
+  .cx .t-wide {
+    font-stretch: 112%;
+  }
+  .cx .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .cx .c-muted {
+    color: var(--md-sys-color-on-surface-variant);
+  }
+  .cx .c-primary {
+    color: var(--md-sys-color-primary);
+  }
+  .cx .c-live {
+    color: var(--cx-live);
+  }
+  .cx .c-error {
+    color: var(--md-sys-color-error);
+  }
+  .cx .c-free {
+    color: var(--cx-free-color);
+  }
+  .cx .truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── Focus + state layers ─────────────────────────────────────────────────────────────── */
+  .cx :focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+  }
+  .cx .cx-state {
+    position: relative;
+    isolation: isolate;
+    cursor: pointer;
+  }
+  .cx .cx-state::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+    transition: opacity var(--cx-motion-effects-fast-duration) var(--cx-motion-effects-fast);
+  }
+  @media (hover: hover) {
+    .cx .cx-state:hover::before {
+      opacity: 0.08;
+    }
+  }
+  .cx .cx-state:focus-visible::before {
+    opacity: 0.1;
+  }
+  .cx .cx-state:active::before {
+    opacity: 0.12;
+    transition-duration: 0ms;
+  }
+  .cx button,
+  .cx a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cx button:disabled {
+    cursor: default;
+  }
+
+  /* ── Buttons. Expressive: press squares the corners (fast spatial spring), nothing scales. ─ */
+  .cx .cx-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 24px;
+    border-radius: var(--cx-shape-full);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.1px;
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: border-radius var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast);
+  }
+  .cx .cx-btn:active {
+    border-radius: var(--cx-shape-sm);
+  }
+  .cx .cx-btn > svg {
+    flex: none;
+  }
+  .cx .cx-btn--lg {
+    min-height: 56px;
+    padding: 0 28px;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .cx .cx-btn--filled {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+  }
+  .cx .cx-btn--tonal {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  .cx .cx-btn--text {
+    padding: 0 12px;
+    color: var(--md-sys-color-primary);
+  }
+  .cx .cx-btn--danger {
+    background: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+  }
+  /* the 48 px target around a 40 px visual */
+  .cx .cx-btn::after,
+  .cx .cx-icon-btn::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+
+  .cx .cx-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--cx-shape-full);
+    color: var(--md-sys-color-on-surface-variant);
+    flex: none;
+    transition: border-radius var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast);
+  }
+  .cx .cx-icon-btn:active {
+    border-radius: var(--cx-shape-md);
+  }
+  .cx .cx-icon-btn--tonal {
+    background: var(--md-sys-color-surface-container-highest);
+    color: var(--md-sys-color-on-surface);
+  }
+  .cx .cx-icon-btn--lg {
+    width: 48px;
+    height: 48px;
+  }
+  .cx .cx-icon-btn:disabled {
+    opacity: 0.38;
+  }
+
+  /* ── Chips ─────────────────────────────────────────────────────────────────────────────── */
+  .cx .cx-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--cx-shape-sm);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    flex: none;
+  }
+  .cx .cx-chip--selected {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  .cx .cx-chip--live {
+    background: var(--cx-live-container);
+    color: var(--cx-on-live-container);
+  }
+  .cx .cx-chip--small {
+    height: 24px;
+    padding: 0 8px;
+    font-size: 12px;
+    line-height: 16px;
+    border-radius: var(--cx-shape-xs);
+    gap: 4px;
+  }
+
+  /* ── Connected button group (the Expressive successor of segmented buttons) ───────────── */
+  .cx .cx-seg {
+    display: flex;
+    gap: 2px;
+  }
+  .cx .cx-seg > button {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 14px;
+    background: var(--md-sys-color-surface-container-highest);
+    color: var(--md-sys-color-on-surface-variant);
+    border-radius: var(--cx-shape-sm);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.1px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition:
+      border-radius var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast),
+      background-color var(--cx-motion-effects-default-duration) var(--cx-motion-effects-default),
+      color var(--cx-motion-effects-default-duration) var(--cx-motion-effects-default);
+  }
+  .cx .cx-seg > button:first-child {
+    border-top-left-radius: var(--cx-shape-full);
+    border-bottom-left-radius: var(--cx-shape-full);
+  }
+  .cx .cx-seg > button:last-child {
+    border-top-right-radius: var(--cx-shape-full);
+    border-bottom-right-radius: var(--cx-shape-full);
+  }
+  .cx .cx-seg > button[aria-pressed='true'],
+  .cx .cx-seg > button[aria-checked='true'] {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    border-radius: var(--cx-shape-full);
+  }
+  .cx .cx-seg--sm > button {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+  .cx .cx-seg-check {
+    display: inline-grid;
+    overflow: hidden;
+    width: 0;
+    transition: width var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast);
+  }
+  .cx [aria-pressed='true'] > .cx-seg-check,
+  .cx [aria-checked='true'] > .cx-seg-check {
+    width: 18px;
+  }
+
+  /* ── Lists: grouped ("segmented") lists, no borders. 2 px gaps, big outer corners. ─────── */
+  .cx .cx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .cx .cx-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 16px;
+    text-align: left;
+    color: inherit;
+    text-decoration: none;
+    background: var(--md-sys-color-surface-container);
+    border-radius: var(--cx-shape-xs);
+  }
+  .cx .cx-list > :first-child > .cx-item,
+  .cx .cx-list > .cx-item:first-child {
+    border-top-left-radius: var(--cx-shape-lg-inc);
+    border-top-right-radius: var(--cx-shape-lg-inc);
+  }
+  .cx .cx-list > :last-child > .cx-item,
+  .cx .cx-list > .cx-item:last-child {
+    border-bottom-left-radius: var(--cx-shape-lg-inc);
+    border-bottom-right-radius: var(--cx-shape-lg-inc);
+  }
+  .cx .cx-item--three {
+    min-height: 72px;
+  }
+  .cx .cx-item--past {
+    background: var(--md-sys-color-surface-container-low);
+  }
+  .cx .cx-item--quiet {
+    background: transparent;
+  }
+  .cx .cx-item--selected {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  .cx .cx-item--selected .c-muted {
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  .cx .cx-item-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .cx .cx-item-trail {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
+  .cx .cx-item-lead {
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .cx .cx-section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 24px 4px 8px;
+    color: var(--md-sys-color-primary);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.1px;
+    font-weight: 600;
+  }
+  .cx .cx-section-title:first-child {
+    padding-top: 8px;
+  }
+
+  /* ── Top app bar: large title scrolls away under a sticky small bar ────────────────────── */
+  .cx .cx-appbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 64px;
+    padding: 0 4px 0 4px;
+    background: var(--md-sys-color-surface);
+    transition: background-color var(--cx-motion-effects-default-duration)
+      var(--cx-motion-effects-default);
+  }
+  .cx .cx-appbar[data-collapsed='true'] {
+    background: var(--md-sys-color-surface-container);
+  }
+  .cx .cx-appbar-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 12px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity var(--cx-motion-effects-fast-duration) var(--cx-motion-effects-fast),
+      transform var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast);
+  }
+  .cx .cx-appbar[data-collapsed='true'] .cx-appbar-title {
+    opacity: 1;
+    transform: none;
+  }
+  .cx .cx-appbar-large {
+    padding: 4px 16px 16px;
+  }
+
+  /* ── Navigation bar (phone) and rail (desktop) ─────────────────────────────────────────── */
+  .cx .cx-navbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    background: var(--md-sys-color-surface-container);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .cx .cx-nav-item {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 80px;
+    color: var(--md-sys-color-on-surface-variant);
+    text-decoration: none;
+  }
+  .cx .cx-nav-ind {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 32px;
+    border-radius: var(--cx-shape-full);
+    isolation: isolate;
+  }
+  .cx .cx-nav-ind::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--md-sys-color-secondary-container);
+    transform: scaleX(0.3);
+    opacity: 0;
+    transition:
+      transform var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast),
+      opacity var(--cx-motion-effects-fast-duration) var(--cx-motion-effects-fast);
+  }
+  .cx .cx-nav-item[aria-current='page'] {
+    color: var(--md-sys-color-on-surface);
+  }
+  .cx .cx-nav-item[aria-current='page'] .cx-nav-ind {
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  .cx .cx-nav-item[aria-current='page'] .cx-nav-ind::after {
+    transform: none;
+    opacity: 1;
+  }
+  .cx .cx-nav-item[aria-current='page'] .cx-nav-label {
+    font-weight: 700;
+  }
+  .cx .cx-nav-item .cx-nav-ind::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity var(--cx-motion-effects-fast-duration) var(--cx-motion-effects-fast);
+  }
+  @media (hover: hover) {
+    .cx .cx-nav-item:hover .cx-nav-ind::before {
+      opacity: 0.08;
+    }
+  }
+  .cx .cx-nav-item:active .cx-nav-ind::before {
+    opacity: 0.12;
+  }
+
+  .cx .cx-rail {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    width: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 24px;
+    gap: 4px;
+    background: var(--md-sys-color-surface);
+  }
+  .cx .cx-rail .cx-nav-item {
+    flex: none;
+    width: 80px;
+    height: 72px;
+  }
+  .cx .cx-rail .cx-nav-ind {
+    width: 56px;
+  }
+
+  /* ── Panes ─────────────────────────────────────────────────────────────────────────────── */
+  .cx .cx-pane {
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scrollbar-color: var(--md-sys-color-outline-variant) transparent;
+  }
+  .cx .cx-pane--card {
+    height: calc(100dvh - 32px);
+    margin: 16px 0;
+    border-radius: var(--cx-shape-xl);
+    background: var(--md-sys-color-surface-container-low);
+  }
+  .cx .cx-pane--card .cx-appbar {
+    background: var(--md-sys-color-surface-container-low);
+  }
+  .cx .cx-pane--card .cx-appbar[data-collapsed='true'] {
+    background: var(--md-sys-color-surface-container);
+  }
+  .cx .cx-pane--card .cx-item {
+    background: var(--md-sys-color-surface-container-high);
+  }
+  .cx .cx-pane--card .cx-item--past {
+    background: var(--md-sys-color-surface-container);
+  }
+  .cx .cx-pane--card .cx-item--quiet {
+    background: transparent;
+  }
+
+  /* ── Sheets + dialogs (native <dialog>: focus trap, Esc, inert page for free) ──────────── */
+  .cx-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+    color: inherit;
+  }
+  .cx-dialog::backdrop {
+    background: transparent;
+  }
+  .cx .cx-scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--md-sys-color-scrim);
+  }
+  .cx .cx-sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: calc(100dvh - 48px);
+    display: flex;
+    flex-direction: column;
+    background: var(--md-sys-color-surface-container-low);
+    border-radius: var(--cx-shape-xl) var(--cx-shape-xl) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    touch-action: none;
+  }
+  .cx .cx-sheet-handle {
+    display: grid;
+    place-items: center;
+    height: 36px;
+    flex: none;
+    cursor: grab;
+  }
+  .cx .cx-sheet-handle > span {
+    width: 32px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--md-sys-color-on-surface-variant);
+  }
+  .cx .cx-sheet-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 16px 24px;
+  }
+  .cx .cx-side-sheet {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: min(420px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    background: var(--md-sys-color-surface-container-low);
+    border-radius: var(--cx-shape-xl);
+    overflow: hidden;
+  }
+  .cx .cx-basic-dialog {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(360px, calc(100vw - 48px));
+    padding: 24px;
+    background: var(--md-sys-color-surface-container-high);
+    border-radius: var(--cx-shape-xl);
+  }
+
+  /* ── Switch (M3, with the check icon in the thumb) ─────────────────────────────────────── */
+  .cx .cx-switch {
+    position: relative;
+    flex: none;
+    width: 52px;
+    height: 32px;
+    border-radius: var(--cx-shape-full);
+    background: var(--md-sys-color-surface-container-highest);
+    box-shadow: inset 0 0 0 2px var(--md-sys-color-outline);
+    transition: background-color var(--cx-motion-effects-default-duration)
+      var(--cx-motion-effects-default);
+  }
+  .cx .cx-switch-thumb {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--md-sys-color-outline);
+    color: transparent;
+    transition:
+      left var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast),
+      width var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast),
+      height var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast),
+      margin var(--cx-motion-spatial-fast-duration) var(--cx-motion-spatial-fast),
+      background-color var(--cx-motion-effects-default-duration) var(--cx-motion-effects-default);
+  }
+  .cx [aria-checked='true'] > .cx-switch {
+    background: var(--md-sys-color-primary);
+    box-shadow: none;
+  }
+  .cx [aria-checked='true'] > .cx-switch .cx-switch-thumb {
+    left: 36px;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    background: var(--md-sys-color-on-primary);
+    color: var(--md-sys-color-on-primary-container);
+  }
+  .cx button:active > .cx-switch .cx-switch-thumb {
+    width: 28px;
+    height: 28px;
+    margin: -14px 0 0 -14px;
+  }
+
+  /* ── Skeleton (no spinners): a static block with a slow pulse ─────────────────────────── */
+  .cx .cx-skel {
+    background: var(--md-sys-color-surface-container-high);
+    border-radius: var(--cx-shape-md);
+    animation: cx-pulse 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes cx-pulse {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.55;
+    }
+  }
+
+  /* ── Wavy progress (M3 Expressive): the wave travels while the class is on ─────────────── */
+  .cx .cx-wave {
+    animation: cx-wave 1.6s linear infinite;
+  }
+  @keyframes cx-wave {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(var(--cx-wave-length));
+    }
+  }
+
+  /* ── Snackbar ──────────────────────────────────────────────────────────────────────────── */
+  .cx .cx-snackbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 4px 8px 4px 16px;
+    border-radius: var(--cx-shape-xs);
+    background: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-inverse-on-surface);
+  }
+
+  .cx .cx-pane--card .cx-item--selected {
+    background: var(--md-sys-color-secondary-container);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cx *,
+    .cx *::before,
+    .cx *::after {
+      transition-duration: 0ms !important;
+      animation: none !important;
+    }
+  }
+}

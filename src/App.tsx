@@ -14,6 +14,7 @@ import { HomePage } from './pages/HomePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { TimetablePage } from './pages/TimetablePage'
+import { PrototypeRoute } from './prototype/route'
 
 /** Renders the app (started by `main.tsx` when the URL isn't a sign-in answer). */
 export function renderApp() {
@@ -23,6 +24,7 @@ export function renderApp() {
         <AuthProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="prototype/*" element={<PrototypeRoute />} />
               <Route element={<Layout />}>
                 <Route index element={<HomePage />} />
                 <Route
