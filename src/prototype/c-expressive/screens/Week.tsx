@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { addDays } from '../../clock'
 import { useKeys, useParam, useProto, useSheetParam, useWindowClass } from '../ctx'
 import { Icon } from '../icons'
-import { dayMonth, isWeekend, weekNumber, weekStart, type Cls } from '../model'
+import { dateRange, isWeekend, weekNumber, weekStart, type Cls } from '../model'
 import { springs } from '../motion'
 import { TopAppBar } from '../ui/Bars'
 import { Segmented } from '../ui/Controls'
@@ -42,7 +42,7 @@ export function WeekScreen() {
   })
 
   const open = (c: Cls) => openClass(c.key)
-  const range = `${Number(monday.slice(8))} to ${dayMonth(friday)}`
+  const range = dateRange(monday, friday)
 
   return (
     <PaneLayout compact={compact}>

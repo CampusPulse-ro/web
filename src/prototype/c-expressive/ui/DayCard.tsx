@@ -161,11 +161,12 @@ export function DayCard({
       announce = `${shortOf(c.o)} in ${c.o.room} at ${hhmm(c.start)}`
       main = roomBlock(c)
       const then = dayClasses(data, c.date).find((x) => x.start >= c.end)
+      const only = state.kind === 'later' || state.first
       footer = then
         ? nextLine(then, 'Then')
-        : state.kind === 'soon' && state.first
-          ? 'Your first class today'
-          : 'Your only class today'
+        : only
+          ? 'Your only class today'
+          : 'Your last class today'
       break
     }
     case 'now': {
@@ -225,7 +226,7 @@ export function DayCard({
         group && free.length > 0 ? (
           <Link
             to={href('/rooms', { show: 'free', group })}
-            className="cx-btn cx-btn--tonal cx-state relative z-10 mt-1 -ml-1"
+            className="cx-btn cx-btn--tonal cx-state pointer-events-auto relative z-10 mt-1 -ml-1"
             style={{ background: look.badge, color: look.onBadge }}
           >
             <Icon name="doorOpen" size={18} />
@@ -306,7 +307,7 @@ export function DayCard({
           </ShapeBadge>
         </div>
         {main}
-        {footer && <div className="t-body-l pointer-events-auto mt-4">{footer}</div>}
+        {footer && <div className="t-body-l mt-4">{footer}</div>}
       </div>
       <VisuallyHidden live>{`${eyebrow}: ${announce}`}</VisuallyHidden>
     </article>

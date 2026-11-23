@@ -44,6 +44,12 @@ export const shortDate = (date: string) =>
 /** "24 November" */
 export const dayMonth = (date: string) => `${dayNum(date)} ${month(date)}`
 
+/** "23 to 27 November", "30 November to 4 December" */
+export const dateRange = (from: string, to: string) =>
+  from.slice(5, 7) === to.slice(5, 7)
+    ? `${dayNum(from)} to ${dayMonth(to)}`
+    : `${dayMonth(from)} to ${dayMonth(to)}`
+
 export function daysBetween(a: string, b: string): number {
   const ms = (d: string) => Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10))
   return Math.round((ms(b) - ms(a)) / 864e5)
@@ -319,7 +325,7 @@ export const STATE_SHAPES: Record<DayState['kind'], ShapeName> = {
   soon: 'verySunny',
   later: 'cookie12',
   now: 'cookie9',
-  break: 'square',
+  break: 'cookie6',
   done: 'circle',
   off: 'clover4',
 }

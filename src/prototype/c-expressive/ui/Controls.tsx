@@ -1,4 +1,5 @@
 import { useRef, type ReactNode } from 'react'
+import { haptic } from '../haptics'
 import { Icon, type IconName } from '../icons'
 
 /**
@@ -26,6 +27,7 @@ export function Segmented<T extends string>({
     const enabled = options.filter((o) => !o.disabled)
     const i = enabled.findIndex((o) => o.value === value)
     const next = enabled[(i + dir + enabled.length) % enabled.length]
+    haptic('selection')
     onChange(next.value)
     requestAnimationFrame(() =>
       ref.current?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus(),
@@ -58,7 +60,10 @@ export function Segmented<T extends string>({
             tabIndex={on ? 0 : -1}
             disabled={o.disabled}
             className="cx-state"
-            onClick={() => onChange(o.value)}
+            onClick={() => {
+              if (o.value !== value) haptic('selection')
+              onChange(o.value)
+            }}
           >
             {o.icon && !on ? (
               <Icon name={o.icon} size={18} />
@@ -95,7 +100,10 @@ export function SwitchRow({
       role="switch"
       aria-checked={checked}
       className="cx-item cx-state"
-      onClick={() => onChange(!checked)}
+      onClick={() => {
+        if (!checked) haptic('success')
+        onChange(!checked)
+      }}
     >
       {icon && (
         <span className="cx-item-lead">

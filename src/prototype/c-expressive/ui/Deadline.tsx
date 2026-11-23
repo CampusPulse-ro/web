@@ -69,9 +69,7 @@ export function AssignmentRow({
           <span className="t-body-s c-muted tnum">{dueLabel(a.dueAt, now)}</span>
         ) : (
           <>
-            <span
-              className={`t-label-l t-e tnum ${late ? 'c-error' : urgency === 'today' ? 'c-live' : ''}`}
-            >
+            <span className={`t-label-l t-e tnum ${late ? 'c-error' : ''}`}>
               {relativeDue(a, now)}
             </span>
             <span className="t-body-s c-muted tnum">
@@ -107,7 +105,7 @@ export function AssignmentDetail({ a }: { a: Assignment }) {
       </div>
       <h2 className="t-headline-s mt-3">{a.name}</h2>
       <p
-        className={`t-title-m mt-1 ${urgency === 'overdue' ? 'c-error' : done ? 'c-muted' : 'c-live'}`}
+        className={`t-title-m mt-1 ${urgency === 'overdue' ? 'c-error' : done ? 'c-muted' : 'c-primary'}`}
       >
         {done
           ? a.status === 'graded'

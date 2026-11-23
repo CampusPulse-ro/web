@@ -11,10 +11,12 @@ import {
   useSnackbar,
   useWindowClass,
 } from '../ctx'
+import { haptic } from '../haptics'
 import { Icon } from '../icons'
 import {
   breaksOf,
   cutoffState,
+  dateRange,
   dayClasses,
   dayState,
   duration,
@@ -58,7 +60,10 @@ export function TodayScreen() {
   const [dayParam, setDay] = useParam('day')
   const [, openClass] = useSheetParam('class')
   const day = dayParam && DATE.test(dayParam) ? dayParam : now.date
-  const go = (d: string) => setDay(d === now.date ? null : d)
+  const go = (d: string) => {
+    if (d === now.date && day !== now.date) haptic('selection')
+    setDay(d === now.date ? null : d)
+  }
 
   useKeys({
     ArrowLeft: () => go(stepDay(day, -1)),
@@ -487,9 +492,7 @@ function WeekPane({
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <div>
           <h2 className="t-headline-s">{week ? `Week ${week}` : 'This week'}</h2>
-          <p className="t-body-m c-muted">
-            {Number(dates[0].slice(8))} to {longDate(dates[4]).split(' ').slice(1).join(' ')}
-          </p>
+          <p className="t-body-m c-muted">{dateRange(dates[0], dates[4])}</p>
         </div>
         <p className="t-body-s c-muted">Pick a day to see it on the left</p>
       </div>

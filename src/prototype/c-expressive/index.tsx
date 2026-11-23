@@ -258,7 +258,7 @@ function DemoTime({
     <div className="fixed z-50" style={pos}>
       {open ? (
         <div
-          className="w-[300px] rounded-2xl p-3 shadow-2xl"
+          className={`rounded-2xl p-3 shadow-2xl ${compact ? 'w-[calc(100vw-24px)]' : 'w-[300px]'}`}
           style={note}
           role="dialog"
           aria-label="Demo time"
@@ -284,7 +284,7 @@ function DemoTime({
               <Icon name="close" size={20} />
             </button>
           </div>
-          <ul className="mt-2 flex flex-col gap-0.5">
+          <ul className={`mt-2 grid gap-0.5 ${compact ? 'grid-cols-2' : 'grid-cols-1'}`}>
             {scenarios.map((s) => {
               const on = s.id === active?.id
               return (
@@ -293,11 +293,11 @@ function DemoTime({
                     type="button"
                     aria-pressed={on}
                     onClick={() => onPick(s.id)}
-                    className="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg px-2 text-left text-[12.5px] hover:bg-black/10"
+                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-2 text-left hover:bg-black/10 ${compact ? 'min-h-9 text-[11.5px]' : 'min-h-10 text-[12.5px]'}`}
                     style={on ? { background: '#1d1a00', color: '#ffe169' } : undefined}
                   >
                     <span>{s.label}</span>
-                    <span className="opacity-80">
+                    <span className={`flex-none opacity-80 ${compact ? 'hidden' : ''}`}>
                       {shortDate(s.at.slice(0, 10)).slice(0, 3)} {s.at.slice(11)}
                     </span>
                   </button>

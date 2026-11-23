@@ -169,7 +169,7 @@ export function WeekGrid({
                     type="button"
                     aria-label={classLabel(c, phase, true)}
                     onClick={() => onOpen(c)}
-                    className="cx-state absolute inset-x-0 z-10 overflow-hidden text-left"
+                    className="cx-state absolute inset-x-0 z-10 flex flex-col justify-start overflow-hidden text-left"
                     style={{
                       top: top(c.start) + 1,
                       height: h,
@@ -192,10 +192,16 @@ export function WeekGrid({
                     </span>
                     <span
                       className="t-label-m block truncate font-medium"
-                      // Roboto Flex only narrows much at a display optical size, so ask for one
+                      // Long codes (OROLOGERIE) on the phone: Roboto Flex only narrows much at a
+                      // display optical size, so ask for one; short codes keep the normal cut
                       style={
-                        compact
-                          ? { fontSize: 11, fontVariationSettings: "'wdth' 40, 'opsz' 36" }
+                        compact && (c.o.room?.length ?? 0) > 6
+                          ? {
+                              fontSize: 11,
+                              fontWeight: 600,
+                              letterSpacing: 0,
+                              fontVariationSettings: "'wdth' 25, 'opsz' 40",
+                            }
                           : { fontStretch: '78%' }
                       }
                     >
