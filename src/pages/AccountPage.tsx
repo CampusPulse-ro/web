@@ -49,7 +49,7 @@ export function AccountPage() {
 function SignInMethods({ user }: { user: Me }) {
   const { t } = useTranslation()
   const format = useDateTimeFormat()
-  const { linkUpt, uptBusy, uptOutcome, clearUptOutcome } = useAuth()
+  const { linkUpt, uptBusy, uptWaiting, uptOutcome, clearUptOutcome } = useAuth()
   const unlink = useUnlinkUpt()
   const [confirming, setConfirming] = useState(false)
   const upt = user.identities.find((item) => item.provider === 'upt-microsoft')
@@ -117,7 +117,9 @@ function SignInMethods({ user }: { user: Me }) {
               ) : (
                 <>
                   <span>{t('account.upt.notLinked')}</span>
-                  <span className="text-ink-muted">{t('account.upt.why')}</span>
+                  <span className="text-ink-muted" aria-live="polite">
+                    {uptWaiting === 'link' ? t('account.upt.waiting') : t('account.upt.why')}
+                  </span>
                 </>
               )}
             </dd>
@@ -144,7 +146,7 @@ function SignInMethods({ user }: { user: Me }) {
           ) : (
             <Button
               size="sm"
-              className="shrink-0"
+              className="shrink-0 self-start sm:self-auto"
               loading={uptBusy}
               onClick={() => {
                 unlink.reset()

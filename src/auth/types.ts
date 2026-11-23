@@ -33,8 +33,10 @@ export interface AuthContextValue {
   isLoading: boolean
   user: Me | null
   signedOutReason: SignedOutReason | null
-  /** A Microsoft sign-in or link is running. */
+  /** Our API is finishing a UPT sign-in or link (or the page is on its way to Microsoft). */
   uptBusy: boolean
+  /** The Microsoft window is open for this; starting again replaces it. */
+  uptWaiting: UptIntent | null
   uptOutcome: UptOutcome | null
   signInWithUpt: () => Promise<void>
   linkUpt: () => Promise<void>

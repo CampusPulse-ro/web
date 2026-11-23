@@ -84,10 +84,20 @@ export function isPopupBlocked(err: unknown): boolean {
   )
 }
 
+/**
+ * The student closed or abandoned the Microsoft window, or opened a new one. MSAL v5 can't see a
+ * popup being closed (it waits for the answer on a BroadcastChannel), so an abandoned one ends
+ * as `timed_out` after a minute, and a newer attempt cancels the older one's wait.
+ */
 export function isCancelled(err: unknown): boolean {
   return (
     err instanceof BrowserAuthError &&
-    (err.errorCode === 'user_cancelled' || err.errorCode === 'user_cancelled_interaction')
+    [
+      'user_cancelled',
+      'user_cancelled_interaction',
+      'interaction_in_progress_cancelled',
+      'timed_out',
+    ].includes(err.errorCode)
   )
 }
 
@@ -102,12 +112,20 @@ export type MicrosoftToken =
  * Signs in with Microsoft (UPT's tenant) in a popup and returns the access token for our API.
  * Always lets the student pick the account. When the popup is blocked, starts a redirect instead.
  * Throws MSAL's error for anything else (consent refused, an AADSTS error).
+ *
+ * Calling it again while a popup is still open replaces that attempt (the older call then
+ * resolves `cancelled`): MSAL can't tell that a popup was closed, so the student's way out of a
+ * closed one is to start again. The app runs one Microsoft step at a time, which is what
+ * `overrideInteractionInProgress` needs to be safe.
  */
 export async function microsoftAccessToken(intent: UptIntent): Promise<MicrosoftToken> {
   await msalReady
   const request = { ...loginRequest, prompt: 'select_account', state: intent }
   try {
-    const result = await msalInstance.loginPopup(request)
+    const result = await msalInstance.loginPopup({
+      ...request,
+      overrideInteractionInProgress: true,
+    })
     return { kind: 'token', accessToken: result.accessToken }
   } catch (err) {
     if (isCancelled(err)) return { kind: 'cancelled' }

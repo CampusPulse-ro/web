@@ -78,8 +78,13 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
   const { inProgress } = useMsal()
   const session = useSession()
   const [pageLoadSettled, setPageLoadSettled] = useState(false)
+  // `waiting`: the Microsoft window is open (the button stays usable: if the student closed the
+  // window, starting again is the way out). `busy`: our API is finishing, or the page is on its
+  // way to Microsoft.
+  const [uptWaiting, setUptWaiting] = useState<UptIntent | null>(null)
   const [uptBusy, setUptBusy] = useState(false)
   const busy = useRef(false)
+  const attempt = useRef(0)
   const [uptOutcome, setUptOutcome] = useState<UptOutcome | null>(null)
 
   useEffect(() => {
@@ -90,32 +95,36 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const runUpt = useCallback(
-    async (intent: UptIntent) => {
-      if (busy.current || inProgress !== InteractionStatus.None) return
+  const runUpt = useCallback(async (intent: UptIntent) => {
+    if (busy.current) return
+    // A newer attempt (the student started again) replaces this one; only the latest one counts.
+    const mine = ++attempt.current
+    const current = () => mine === attempt.current
+    setUptWaiting(intent)
+    setUptOutcome(null)
+    clearSignedOutReason()
+    try {
+      const token = await microsoftAccessToken(intent)
+      if (!current()) return
+      setUptWaiting(null)
+      if (token.kind === 'cancelled') return
       busy.current = true
       setUptBusy(true)
-      setUptOutcome(null)
-      clearSignedOutReason()
-      let redirecting = false
+      // On its way to Microsoft: stay busy until the page goes.
+      if (token.kind === 'redirecting') return
       try {
-        const token = await microsoftAccessToken(intent)
-        if (token.kind === 'redirecting') redirecting = true
-        if (token.kind !== 'token') return
         const outcome = await finish(intent, token.accessToken)
         if (outcome) setUptOutcome(outcome)
-      } catch (err) {
-        setUptOutcome({ intent, problem: authProblem(err) })
       } finally {
-        // On its way to Microsoft: stay busy until the page goes.
-        if (!redirecting) {
-          busy.current = false
-          setUptBusy(false)
-        }
+        busy.current = false
+        setUptBusy(false)
       }
-    },
-    [inProgress],
-  )
+    } catch (err) {
+      if (!current()) return
+      setUptWaiting(null)
+      setUptOutcome({ intent, problem: authProblem(err) })
+    }
+  }, [])
 
   const signInWithUpt = useCallback(() => runUpt('sign-in'), [runUpt])
   const linkUpt = useCallback(() => runUpt('link'), [runUpt])
@@ -140,7 +149,12 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
       isLoading: session.status === 'loading' || (!pageLoadSettled && user === null),
       user,
       signedOutReason: session.status === 'signedOut' ? session.reason : null,
-      uptBusy: uptBusy || inProgress !== InteractionStatus.None,
+      // MSAL finishing a redirect at startup also blocks starting another.
+      uptBusy:
+        uptBusy ||
+        inProgress === InteractionStatus.Startup ||
+        inProgress === InteractionStatus.HandleRedirect,
+      uptWaiting,
       uptOutcome,
       signInWithUpt,
       linkUpt,
@@ -153,6 +167,7 @@ function InnerAuthProvider({ children }: { children: ReactNode }) {
     session,
     pageLoadSettled,
     uptBusy,
+    uptWaiting,
     inProgress,
     uptOutcome,
     signInWithUpt,

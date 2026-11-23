@@ -15,6 +15,7 @@ export function SignInCard() {
   const {
     signInWithUpt,
     uptBusy,
+    uptWaiting,
     uptOutcome,
     clearUptOutcome,
     signedOutReason,
@@ -61,7 +62,9 @@ export function SignInCard() {
         <Button onClick={() => void signInWithUpt()} loading={uptBusy}>
           {t('signIn.continueWithUpt')}
         </Button>
-        <p className="m-0 text-center text-body-small text-ink-muted">{t('signIn.uptWhy')}</p>
+        <p className="m-0 text-center text-body-small text-ink-muted" aria-live="polite">
+          {uptWaiting === 'sign-in' ? t('signIn.uptWaiting') : t('signIn.uptWhy')}
+        </p>
       </div>
 
       <div className="flex flex-col gap-4 border-t border-line pt-6">
