@@ -11,17 +11,15 @@ import {
   useSnackbar,
   useWindowClass,
 } from '../ctx'
+import { allDue, cutoffOf, urgencyOf } from '../campus'
 import { haptic } from '../haptics'
 import { Icon } from '../icons'
 import {
   breaksOf,
-  cutoffState,
   dateRange,
   dayClasses,
   dayState,
   duration,
-  freeBetween,
-  groupOf,
   hhmm,
   holidayOf,
   isWeekend,
@@ -31,7 +29,6 @@ import {
   relativeDay,
   shortDate,
   shortOf,
-  urgencyOf,
   weekCount,
   weekNumber,
   type Cls,
@@ -40,10 +37,10 @@ import { springs } from '../motion'
 import { TopAppBar } from '../ui/Bars'
 import { ClassRow } from '../ui/ClassBits'
 import { DayCard } from '../ui/DayCard'
-import { AssignmentRow } from '../ui/Deadline'
+import { DueRow } from '../ui/Deadline'
 import { LoadingIndicator, ShapeBadge } from '../ui/Shape'
 import { SubjectLegend, WeekGrid } from '../ui/WeekGrid'
-import { AccountButton, PaneLayout } from './common'
+import { AccountButton, LinkUptNudge, PaneLayout } from './common'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -243,7 +240,7 @@ function DayBody({
   onOpen: (c: Cls) => void
   compact: boolean
 }) {
-  const { data, now } = useProto()
+  const { data, now, campus, account } = useProto()
   const href = useHref()
   const navigate = useNavigate()
   const isToday = day === now.date
@@ -253,9 +250,9 @@ function DayBody({
   const rest = classes.filter((c) => !past.includes(c))
   const breaks = breaksOf(classes).filter((b) => !isToday || b.to > now.minutes)
   const due = isToday
-    ? data.assignments
-        .filter((a) => ['overdue', 'today', 'tomorrow'].includes(urgencyOf(a, now)))
-        .filter((a) => cutoffState(a, now) !== 'closed')
+    ? allDue(data, campus, !!account?.uptLinked)
+        .filter((d) => ['overdue', 'today', 'tomorrow'].includes(urgencyOf(d, now)))
+        .filter((d) => cutoffOf(d, now) !== 'closed')
         .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
         .slice(0, 3)
     : []
@@ -290,11 +287,15 @@ function DayBody({
           <ul className="cx-list">
             {due.map((a) => (
               <li key={a.id}>
-                <AssignmentRow a={a} onOpen={(x) => navigate(href(`/deadlines/${x.id}`))} />
+                <DueRow d={a} onOpen={(x) => navigate(href(`/deadlines/${x.id}`))} />
               </li>
             ))}
           </ul>
         </section>
+      )}
+
+      {isToday && (
+        <LinkUptNudge text="Your Campus Virtual deadlines then show up here, under your next class." />
       )}
 
       {classes.length > 0 && (
@@ -352,14 +353,7 @@ function DayBody({
           )}
           {runs.map((run) => (
             <div key={run.cls[0].key}>
-              {run.breakBefore && (
-                <BreakRow
-                  from={run.breakBefore.from}
-                  to={run.breakBefore.to}
-                  next={run.breakBefore.before}
-                  day={day}
-                />
-              )}
+              {run.breakBefore && <BreakRow from={run.breakBefore.from} to={run.breakBefore.to} />}
               <ul className="cx-list">
                 <AnimatePresence initial={false}>
                   {run.cls.map((c) => (
@@ -387,14 +381,10 @@ function DayBody({
   )
 }
 
-/** A gap of 30 min or more is information: how long, and which rooms are free for it. */
-function BreakRow({ from, to, next, day }: { from: number; to: number; next: Cls; day: string }) {
-  const { data } = useProto()
-  const href = useHref()
-  const group = next.o.room ? groupOf(next.o.room) : null
-  const free = group ? freeBetween(data, day, from, to).filter((r) => groupOf(r) === group) : []
-  const body = (
-    <>
+/** A gap of 30 minutes or more, as its own quiet row: how long, from when to when. */
+function BreakRow({ from, to }: { from: number; to: number }) {
+  return (
+    <div className="cx-item cx-item--quiet my-1">
       <span className="cx-item-lead">
         <Icon name="localCafe" />
       </span>
@@ -405,24 +395,8 @@ function BreakRow({ from, to, next, day }: { from: number; to: number; next: Cls
             , <span className="tnum">{hhmm(from)}</span> to <span className="tnum">{hhmm(to)}</span>
           </span>
         </span>
-        {free.length > 0 && (
-          <span className="t-body-m c-free">
-            {free.length} {group} {free.length === 1 ? 'room' : 'rooms'} free for all of it
-          </span>
-        )}
       </span>
-    </>
-  )
-  return free.length > 0 ? (
-    <Link
-      to={href('/rooms', { show: 'free', group, day, at: null })}
-      className="cx-item cx-item--quiet cx-state my-1 rounded-2xl"
-    >
-      {body}
-      <Icon name="chevronRight" className="c-muted" />
-    </Link>
-  ) : (
-    <div className="cx-item cx-item--quiet my-1">{body}</div>
+    </div>
   )
 }
 

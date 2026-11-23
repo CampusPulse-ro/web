@@ -1,13 +1,10 @@
 import NumberFlow from '@number-flow/react'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
-import { useHref, useProto } from '../ctx'
+import { useProto } from '../ctx'
 import { Icon, type IconName } from '../icons'
 import {
   dayClasses,
   durationSpoken,
-  freeBetween,
-  groupOf,
   hhmm,
   kindOf,
   relativeDay,
@@ -18,36 +15,27 @@ import {
   type DayState,
 } from '../model'
 import { easing } from '../motion'
+import { directionsUrl, placeOf } from '../places'
 import { VisuallyHidden } from './Controls'
 import { ShapeBadge } from './Shape'
 import { WavyProgress } from './WavyProgress'
 
 type Look = 'live' | 'calm' | 'rest'
 
-const LOOKS: Record<
-  Look,
-  { bg: string; fg: string; badge: string; onBadge: string; track: string }
-> = {
-  live: {
-    bg: 'var(--cx-live-container)',
-    fg: 'var(--cx-on-live-container)',
-    badge: 'var(--cx-on-live-container)',
-    onBadge: 'var(--cx-live-container)',
-    track: 'color-mix(in srgb, var(--cx-on-live-container) 22%, transparent)',
-  },
+/**
+ * Every state sits in the same quiet card; only the badge changes colour. Live states (a class on
+ * or about to start) get the live hue in small doses: a deep live-tone badge, a pulsing dot and the
+ * progress wave. No full-card colour.
+ */
+const LOOKS: Record<Look, { badge: string; onBadge: string }> = {
+  live: { badge: 'var(--cx-live-quiet)', onBadge: 'var(--cx-on-live-quiet)' },
   calm: {
-    bg: 'var(--md-sys-color-primary-container)',
-    fg: 'var(--md-sys-color-on-primary-container)',
-    badge: 'var(--md-sys-color-primary)',
-    onBadge: 'var(--md-sys-color-on-primary)',
-    track: 'color-mix(in srgb, var(--md-sys-color-on-primary-container) 25%, transparent)',
+    badge: 'var(--md-sys-color-primary-container)',
+    onBadge: 'var(--md-sys-color-on-primary-container)',
   },
   rest: {
-    bg: 'var(--md-sys-color-surface-container-high)',
-    fg: 'var(--md-sys-color-on-surface)',
     badge: 'var(--md-sys-color-secondary-container)',
     onBadge: 'var(--md-sys-color-on-secondary-container)',
-    track: 'var(--md-sys-color-surface-container-highest)',
   },
 }
 
@@ -80,7 +68,6 @@ export function DayCard({
   compact: boolean
 }) {
   const { data, now } = useProto()
-  const href = useHref()
   const look = LOOKS[lookOf(state)]
   const target: Cls | null = state.kind === 'done' || state.kind === 'off' ? state.next : state.cls
 
@@ -91,21 +78,41 @@ export function DayCard({
   let main: ReactNode
   let footer: ReactNode = null
 
-  const roomBlock = (c: Cls) => (
-    <>
-      <p
-        className="t-narrow tnum mt-3 font-semibold"
-        style={{ fontSize: compact ? 44 : 52, lineHeight: 1.05, letterSpacing: -0.5 }}
-      >
-        {c.o.room ?? 'Room not set'}
-      </p>
-      <p className="t-title-l mt-2">{c.o.subject}</p>
-      <p className="t-body-l mt-0.5" style={{ opacity: 0.86 }}>
-        {kindOf(c)}, {hhmm(c.start)} to {hhmm(c.end)}
-        {c.o.teacher ? ` with ${c.o.teacher}` : ''}
-      </p>
-    </>
-  )
+  const roomBlock = (c: Cls) => {
+    const place = placeOf(c.o.room)
+    return (
+      <>
+        <p
+          className="t-narrow tnum mt-3 font-semibold"
+          style={{ fontSize: compact ? 44 : 52, lineHeight: 1.05, letterSpacing: -0.5 }}
+        >
+          {c.o.room ?? 'Room not set'}
+        </p>
+        {place && (
+          <p className="t-body-m c-muted mt-1 flex flex-wrap items-center gap-x-2">
+            <span>
+              {place.building.name}
+              {place.floor ? `, ${place.floor}` : ''}
+            </span>
+            <a
+              href={directionsUrl(place)}
+              target="_blank"
+              rel="noreferrer"
+              className="c-primary cx-state pointer-events-auto relative z-10 -mx-1 inline-flex items-center gap-1 rounded-full px-1 font-medium"
+            >
+              <Icon name="directions" size={16} />
+              Directions
+            </a>
+          </p>
+        )}
+        <p className="t-title-l mt-3">{c.o.subject}</p>
+        <p className="t-body-l c-muted mt-0.5">
+          {kindOf(c)}, {hhmm(c.start)} to {hhmm(c.end)}
+          {c.o.teacher ? ` with ${c.o.teacher}` : ''}
+        </p>
+      </>
+    )
+  }
 
   const number = (min: number, suffix: string) => {
     const a = amount(min, suffix)
@@ -187,8 +194,8 @@ export function DayCard({
               value={state.progress}
               label="Class progress"
               valueText={`${durationSpoken(state.left)} left`}
-              color={look.fg}
-              track={look.track}
+              color="var(--cx-live)"
+              track="var(--md-sys-color-surface-container-highest)"
             />
           </div>
         </>
@@ -210,30 +217,10 @@ export function DayCard({
       announce = `next ${shortOf(c.o)} in ${c.o.room} at ${hhmm(c.start)}`
       main = (
         <>
-          <p className="t-body-l mt-3" style={{ opacity: 0.86 }}>
-            Next class
-          </p>
+          <p className="t-body-l c-muted mt-3">Next class</p>
           {roomBlock(c)}
         </>
       )
-      const group = c.o.room ? groupOf(c.o.room) : null
-      const free = group
-        ? freeBetween(data, now.date, now.minutes, c.start).filter(
-            (r) => groupOf(r) === group && r !== c.o.room,
-          )
-        : []
-      footer =
-        group && free.length > 0 ? (
-          <Link
-            to={href('/rooms', { show: 'free', group })}
-            className="cx-btn cx-btn--tonal cx-state pointer-events-auto relative z-10 mt-1 -ml-1"
-            style={{ background: look.badge, color: look.onBadge }}
-          >
-            <Icon name="doorOpen" size={18} />
-            {free.length} {group} {free.length === 1 ? 'room is' : 'rooms are'} free until{' '}
-            {hhmm(c.start)}
-          </Link>
-        ) : null
       break
     }
     case 'done': {
@@ -278,12 +265,9 @@ export function DayCard({
     <article
       className="relative overflow-hidden"
       style={{
-        background: look.bg,
-        color: look.fg,
+        background: 'var(--md-sys-color-surface-container-high)',
         borderRadius: 'var(--cx-shape-xl-inc)',
         padding: compact ? '18px 20px 20px' : '22px 24px 24px',
-        transition:
-          'background-color var(--cx-motion-effects-default-duration) var(--cx-motion-effects-default), color var(--cx-motion-effects-default-duration) var(--cx-motion-effects-default)',
       }}
     >
       {target && (
@@ -297,10 +281,13 @@ export function DayCard({
       <div className="pointer-events-none relative">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 pt-1">
-            <h2 className="t-title-m t-e">{eyebrow}</h2>
-            <p className="t-body-m mt-0.5" style={{ opacity: 0.86 }}>
-              {line}
-            </p>
+            <h2
+              className={`t-title-m t-e flex items-center gap-2 ${lookOf(state) === 'live' ? 'c-live' : ''}`}
+            >
+              {lookOf(state) === 'live' && <span className="cx-live-dot" aria-hidden="true" />}
+              {eyebrow}
+            </h2>
+            <p className="t-body-m c-muted mt-0.5">{line}</p>
           </div>
           <ShapeBadge shape={STATE_SHAPES[state.kind]} size={compact ? 100 : 112} fill={look.badge}>
             {badge}
@@ -321,9 +308,7 @@ function nextDay(next: Cls | null, today: string) {
   const when = relativeDay(next.date, today)
   return (
     <>
-      <p className="t-body-l mt-3" style={{ opacity: 0.86 }}>
-        Next class
-      </p>
+      <p className="t-body-l c-muted mt-3">Next class</p>
       <p className="t-narrow tnum mt-1 font-semibold" style={{ fontSize: 40, lineHeight: 1.1 }}>
         {capital(when)} {hhmm(next.start)}
       </p>

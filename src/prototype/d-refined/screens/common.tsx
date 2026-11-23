@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { useHref } from '../ctx'
+import { useHref, useProto, useSnackbar } from '../ctx'
+import { haptic } from '../haptics'
+import { Icon } from '../icons'
 
 /**
  * Window-class layouts. Compact: the screen is the page. Medium/expanded: the rail sits left, and
@@ -52,5 +54,35 @@ export function Avatar({ size }: { size: number }) {
     >
       DS
     </span>
+  )
+}
+
+/** The nudge an email-only account sees where Campus Virtual data would be. */
+export function LinkUptNudge({ text }: { text: string }) {
+  const { account, setAccount } = useProto()
+  const snack = useSnackbar()
+  if (!account || account.uptLinked) return null
+  return (
+    <div
+      className="mt-2 mb-2 flex flex-col gap-3 p-5 sm:flex-row sm:items-center"
+      style={{ background: 'var(--md-sys-color-primary-container)', borderRadius: 24 }}
+    >
+      <span style={{ color: 'var(--md-sys-color-on-primary-container)' }} className="flex-1">
+        <span className="t-title-m block">Link your UPT account</span>
+        <span className="t-body-m block">{text}</span>
+      </span>
+      <button
+        type="button"
+        className="cx-btn cx-btn--filled cx-state self-start sm:self-center"
+        onClick={() => {
+          setAccount({ ...account, uptLinked: true })
+          haptic('success')
+          snack('UPT account linked')
+        }}
+      >
+        <Icon name="school" size={18} />
+        Continue with UPT
+      </button>
+    </div>
   )
 }

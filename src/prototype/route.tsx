@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 
 // UI prototype (throwaway, see README.md here): its own full-screen shell, loaded on demand.
-const Prototype = lazy(() => import('./c-expressive'))
+const Prototype = lazy(() => import('./d-refined'))
 
 export function PrototypeRoute() {
   return (

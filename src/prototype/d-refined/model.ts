@@ -1,16 +1,9 @@
 /**
- * What the app knows at a given demo moment: the state of the day (the "now" badge's job), breaks,
- * room availability and deadline urgency. Pure functions over the shared demo data and clock.
+ * What the app knows at a given demo moment: the state of the day (the "now" badge's job), breaks
+ * and time maths. Pure functions over the shared demo data and clock. Deadlines live in campus.ts.
  */
 import { addDays, formatMinutes, minutesOf, weekdayIndex, type WallTime } from '../clock'
-import {
-  buildingOf,
-  classesOn,
-  type Assignment,
-  type DemoData,
-  type Occurrence,
-  type RoomOccurrence,
-} from '../data'
+import { classesOn, type DemoData, type Occurrence } from '../data'
 import type { ShapeName } from './shapes'
 
 /* ── Dates and durations ─────────────────────────────────────────────────────────────────── */
@@ -70,31 +63,6 @@ export function duration(min: number): string {
   const h = Math.floor(min / 60)
   const m = min % 60
   return m ? `${h} h ${m} min` : `${h} h`
-}
-
-/** Tight spaces (trailing columns): 80 → "1 h 20" */
-export function durationShort(min: number): string {
-  if (min < 60) return `${min} min`
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  return m ? `${h} h ${m}` : `${h} h`
-}
-
-/** "CTI-EN 4 1.1", "CTI-EN 4 1.2" → "CTI-EN 4 groups 1.1 and 1.2" */
-export function groupsText(groups: string[]): string {
-  const byPrefix = new Map<string, string[]>()
-  for (const g of groups) {
-    const i = g.lastIndexOf(' ')
-    const [p, l] = i > 0 ? [g.slice(0, i), g.slice(i + 1)] : ['', g]
-    byPrefix.set(p, [...(byPrefix.get(p) ?? []), l])
-  }
-  const and = (xs: string[]) =>
-    xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`
-  return and(
-    [...byPrefix.entries()].map(([p, ls]) =>
-      p ? `${p} ${ls.length > 1 ? 'groups' : 'group'} ${and(ls)}` : and(ls),
-    ),
-  )
 }
 
 /** For screen readers: "1 hour 20 minutes" */
@@ -187,6 +155,21 @@ export function holidaysBetween(data: DemoData, from: string, to: string) {
   }
   return out
 }
+
+export type ClassKind = 'course' | 'lab' | 'seminar' | 'other'
+
+/** Course, lab or seminar: each has its own cell treatment and mark, so colour isn't the cue. */
+export const classKind = (c: Cls): ClassKind => {
+  const k = c.o.kinds[0]
+  return k === 'course' || k === 'lab' || k === 'seminar' ? k : 'other'
+}
+
+export const KIND_ICON = {
+  course: 'coPresent',
+  lab: 'science',
+  seminar: 'groups',
+  other: 'school',
+} as const
 
 export const kindOf = (c: Cls) => {
   const k = c.o.kinds[0] ?? 'class'
@@ -340,65 +323,10 @@ export function breaksOf(classes: Cls[]): { from: number; to: number; before: Cl
   return out
 }
 
-/* ── Rooms ───────────────────────────────────────────────────────────────────────────────── */
+/* ── The teaching day ───────────────────────────────────────────────────────────────────── */
 
 export const DAY_END = 20 * 60
 export const DAY_START = 8 * 60
-
-export const roomDates = (data: DemoData) => {
-  const any = Object.values(data.roomTimetables)[0]
-  return any ? Object.keys(any).sort() : []
-}
-
-export function roomDay(data: DemoData, code: string, date: string): RoomOccurrence[] | null {
-  const byDate = data.roomTimetables[code]
-  if (!byDate) return null
-  const day = byDate[date]
-  if (!day) return null
-  return [...day.occurrences].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-}
-
-export type RoomStatus =
-  | { known: false }
-  | { known: true; free: true; until: number | null; freeFor: number }
-  | { known: true; free: false; until: number; current: RoomOccurrence; freeFor: number }
-
-/** Free or in use at `minutes`, merging back-to-back classes into one "in use until". */
-export function roomStatus(
-  data: DemoData,
-  code: string,
-  date: string,
-  minutes: number,
-): RoomStatus {
-  const occ = roomDay(data, code, date)
-  if (!occ) return { known: false }
-  const spans = occ.map((o) => ({ o, s: minutesOf(o.startsAt), e: minutesOf(o.endsAt) }))
-  const current = spans.find((x) => x.s <= minutes && minutes < x.e)
-  if (current) {
-    let until = current.e
-    for (const x of spans) if (x.s <= until && x.e > until) until = x.e
-    const nextBusy = spans.find((x) => x.s > until)
-    const freeTo = nextBusy ? nextBusy.s : Math.max(DAY_END, until)
-    return { known: true, free: false, until, current: current.o, freeFor: freeTo - until }
-  }
-  const nextBusy = spans.find((x) => x.s > minutes)
-  if (nextBusy) return { known: true, free: true, until: nextBusy.s, freeFor: nextBusy.s - minutes }
-  return { known: true, free: true, until: null, freeFor: Math.max(DAY_END - minutes, 0) }
-}
-
-/** Rooms with nothing on between `from` and `to`. */
-export function freeBetween(data: DemoData, date: string, from: number, to: number): string[] {
-  return data.rooms
-    .map((r) => r.code)
-    .filter((code) => {
-      const occ = roomDay(data, code, date)
-      if (!occ) return false
-      return !occ.some((o) => minutesOf(o.startsAt) < to && minutesOf(o.endsAt) > from)
-    })
-}
-
-/** The code-prefix group (a guess, not a building: the data has no buildings). */
-export const groupOf = buildingOf
 
 /* ── Deadlines ───────────────────────────────────────────────────────────────────────────── */
 
@@ -412,32 +340,8 @@ export function minutesUntil(now: WallTime, at: { date: string; minutes: number 
   return daysBetween(now.date, at.date) * 1440 + at.minutes - now.minutes
 }
 
-export type Urgency = 'overdue' | 'today' | 'tomorrow' | 'week' | 'later' | 'done'
-
-export const URGENCY_TITLES: Record<Urgency, string> = {
-  overdue: 'Overdue',
-  today: 'Due today',
-  tomorrow: 'Due tomorrow',
-  week: 'This week',
-  later: 'Later',
-  done: 'Submitted and graded',
-}
-
-export function urgencyOf(a: Assignment, now: WallTime): Urgency {
-  if (a.status === 'submitted' || a.status === 'graded') return 'done'
-  const due = wallOf(a.dueAt)
-  const left = minutesUntil(now, due)
-  if (left < 0) return 'overdue'
-  const days = daysBetween(now.date, due.date)
-  if (days === 0) return 'today'
-  if (days === 1) return 'tomorrow'
-  if (days < 7) return 'week'
-  return 'later'
-}
-
-/** "in 6 h", "in 3 days", "12 h late", "2 days late" */
-export function relativeDue(a: Assignment, now: WallTime): string {
-  const left = minutesUntil(now, wallOf(a.dueAt))
+/** -720 → "12 h late", 4320 → "in 3 days" */
+export function relativeDue(left: number): string {
   const abs = Math.abs(left)
   const amount =
     abs < 60
@@ -461,20 +365,6 @@ export function dueLabel(iso: string, now: WallTime): string {
           ? weekdayShort(w.date)
           : shortDate(w.date)
   return `${day} ${hhmm(w.minutes)}`
-}
-
-export const STATUS_TEXT: Record<Assignment['status'], string> = {
-  notsubmitted: 'No submission yet',
-  draft: 'Draft, not submitted for grading',
-  submitted: 'Submitted for grading',
-  graded: 'Graded',
-}
-
-export function cutoffState(a: Assignment, now: WallTime): 'open' | 'late-ok' | 'closed' {
-  const left = minutesUntil(now, wallOf(a.dueAt))
-  if (left >= 0) return 'open'
-  if (!a.cutoffAt) return 'late-ok'
-  return minutesUntil(now, wallOf(a.cutoffAt)) >= 0 ? 'late-ok' : 'closed'
 }
 
 export function bytes(n: number): string {

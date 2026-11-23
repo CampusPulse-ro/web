@@ -1,11 +1,12 @@
-import { useRef, type ReactNode } from 'react'
+import { m } from 'motion/react'
+import { useId, useRef, type ReactNode } from 'react'
 import { haptic } from '../haptics'
 import { Icon, type IconName } from '../icons'
+import { springs } from '../motion'
 
 /**
- * Segmented buttons, drawn as M3 Expressive's connected button group: tonal segments with 2 px
- * gaps; the selected one turns fully round (a shape change, not just a colour) and shows a check.
- * A radio group: arrow keys move the choice.
+ * A standard segmented control: a track with a thumb that slides to the chosen option (a spring,
+ * so a fast second tap retargets it mid-way). A radio group: arrow keys move the choice.
  */
 export function Segmented<T extends string>({
   options,
@@ -23,6 +24,7 @@ export function Segmented<T extends string>({
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const id = useId()
   const move = (dir: number) => {
     const enabled = options.filter((o) => !o.disabled)
     const i = enabled.findIndex((o) => o.value === value)
@@ -59,21 +61,52 @@ export function Segmented<T extends string>({
             aria-checked={on}
             tabIndex={on ? 0 : -1}
             disabled={o.disabled}
-            className="cx-state"
             onClick={() => {
               if (o.value !== value) haptic('selection')
               onChange(o.value)
             }}
           >
-            {o.icon && !on ? (
-              <Icon name={o.icon} size={18} />
-            ) : (
-              <span className="cx-seg-check">
-                <Icon name="check" size={18} />
-              </span>
+            {on && (
+              <m.span
+                layoutId={`seg-${id}`}
+                className="cx-seg-thumb"
+                transition={springs.spatialFast}
+              />
             )}
-            {o.label}
+            <span className="relative flex items-center gap-1.5">
+              {o.icon && <Icon name={o.icon} size={18} />}
+              {o.label}
+            </span>
           </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * Two or more views side by side that slide in the direction the selection moves: picking a
+ * later option moves the content left to right, an earlier one right to left. Every page keeps
+ * its own spring, so toggling fast just turns the motion around mid-way. Reduced motion: a fade.
+ */
+export function Pager({ index, pages }: { index: number; pages: ReactNode[] }) {
+  return (
+    <div className="relative overflow-x-clip">
+      {pages.map((p, i) => {
+        const active = i === index
+        return (
+          <m.div
+            key={i}
+            className={active ? 'relative' : 'absolute inset-x-0 top-0'}
+            initial={false}
+            animate={{ x: `${(index - i) * 100}%`, opacity: active ? 1 : 0 }}
+            transition={{ x: springs.spatialDefault, opacity: springs.effectsDefault }}
+            aria-hidden={!active}
+            inert={!active}
+            style={{ pointerEvents: active ? 'auto' : 'none' }}
+          >
+            {p}
+          </m.div>
         )
       })}
     </div>

@@ -11,6 +11,9 @@ import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-r
 import { initialStart, scenarios, scenarioStart, useDemoClock, type WallTime } from '../clock'
 import { useDemoData } from '../data'
 import {
+  APP_ID,
+  themeColor,
+  type Account,
   ProtoContext,
   SnackbarContext,
   useDelayed,
@@ -20,23 +23,38 @@ import {
   useWindowClass,
 } from './ctx'
 import { Icon } from './icons'
-import { findClass, hhmm, shortDate, subjectLooks, type Cls } from './model'
+import type { CampusState, DueItem } from './campus'
+import { findClass, hhmm, shortDate, shortOf, subjectLooks } from './model'
 import { springs } from './motion'
 import { DeadlinesScreen } from './screens/Deadlines'
 import { ProfileScreen } from './screens/Profile'
-import { RoomsScreen } from './screens/Rooms'
+import { CoursesScreen } from './screens/Courses'
+import { SignInScreen } from './screens/SignIn'
 import { TodayScreen } from './screens/Today'
 import { WeekScreen } from './screens/Week'
 import { Avatar } from './screens/common'
 import { NavBar, NavRail } from './ui/Bars'
 import { ClassDetail } from './ui/ClassBits'
-import { Modal } from './ui/Modal'
+import { Panel } from './ui/Panel'
 import { ShapeBadge } from './ui/Shape'
 
-export default function PrototypeC() {
+const ACCOUNT_KEY = 'cx-d-account'
+
+/** The demo starts signed in with UPT; signing out and in again is kept for the tab's session. */
+function readAccount(): Account | null {
+  const fallback: Account = { email: 'd.student@student.upt.ro', via: 'upt', uptLinked: true }
+  try {
+    const raw = sessionStorage.getItem(ACCOUNT_KEY)
+    return raw === null ? fallback : (JSON.parse(raw) as Account | null)
+  } catch {
+    return fallback
+  }
+}
+
+export default function PrototypeD() {
   useEffect(() => {
     const prev = document.title
-    document.title = 'CampusPulse, prototype C: Native Expressive'
+    document.title = 'CampusPulse, prototype D: C refined'
     return () => {
       document.title = prev
     }
@@ -61,6 +79,23 @@ function Root() {
   const skeleton = useDelayed(!data, 200)
   const navigate = useNavigate()
   const location = useLocation()
+  const [origin, setOrigin] = useState<string | null>(null)
+  const [campus, setCampus] = useState<CampusState>({ patches: {}, added: [] })
+  const [account, setAccountState] = useState<Account | null>(readAccount)
+  const setAccount = useCallback((a: Account | null) => {
+    setAccountState(a)
+    if (a) sessionStorage.setItem(ACCOUNT_KEY, JSON.stringify(a))
+    else sessionStorage.setItem(ACCOUNT_KEY, 'null')
+  }, [])
+  const patchDue = useCallback(
+    (id: string, p: Partial<DueItem>) =>
+      setCampus((c) => ({ ...c, patches: { ...c.patches, [id]: { ...c.patches[id], ...p } } })),
+    [],
+  )
+  const addDue = useCallback(
+    (d: DueItem) => setCampus((c) => ({ ...c, added: [...c.added, d] })),
+    [],
+  )
 
   useEffect(() => {
     if (!snack) return
@@ -82,7 +117,21 @@ function Root() {
   return (
     <LazyMotion features={domMax} strict>
       <MotionConfig reducedMotion="user">
-        <ProtoContext.Provider value={{ data, now, looks, epoch }}>
+        <ProtoContext.Provider
+          value={{
+            data,
+            now,
+            looks,
+            epoch,
+            origin,
+            setOrigin,
+            campus,
+            patchDue,
+            addDue,
+            account,
+            setAccount,
+          }}
+        >
           <SnackbarContext.Provider value={show}>
             <Shell />
             <DemoTime start={start} now={now} onPick={pick} />
@@ -96,96 +145,110 @@ function Root() {
 
 function Shell() {
   const { compact } = useWindowClass()
+  const { account } = useProto()
   const { pathname } = useLocation()
   const href = useHref()
-  const detail = /\/(rooms|deadlines)\/[^/]+$|\/profile$/.test(pathname)
+  const signIn = pathname.endsWith('/sign-in')
+  if (!account && !signIn) return <Navigate to={href('/sign-in')} replace />
+  if (signIn)
+    return (
+      <Routes>
+        <Route path="sign-in" element={<SignInScreen />} />
+      </Routes>
+    )
+  const detail = /\/(deadlines|courses)\/[^/]+$|\/profile$/.test(pathname)
   return (
     <>
-      {!compact && (
-        <NavRail
-          top={
-            <Link to={href('')} aria-label="CampusPulse, today" className="grid place-items-center">
-              <ShapeBadge shape="cookie12" size={48} fill="var(--md-sys-color-primary)">
-                <span
-                  className="t-narrow font-bold"
-                  style={{ color: 'var(--md-sys-color-on-primary)', fontSize: 16 }}
-                >
-                  cp
+      <div id={APP_ID}>
+        {!compact && (
+          <NavRail
+            top={
+              <Link
+                to={href('')}
+                aria-label="CampusPulse, today"
+                className="grid place-items-center"
+              >
+                <ShapeBadge shape="cookie12" size={48} fill="var(--md-sys-color-primary)">
+                  <span
+                    className="t-narrow font-bold"
+                    style={{ color: 'var(--md-sys-color-on-primary)', fontSize: 16 }}
+                  >
+                    cp
+                  </span>
+                </ShapeBadge>
+              </Link>
+            }
+            bottom={
+              <Link
+                to={href('/profile')}
+                className="cx-nav-item"
+                aria-current={pathname.endsWith('/profile') ? 'page' : undefined}
+              >
+                <span className="cx-nav-ind">
+                  <Avatar size={28} />
                 </span>
-              </ShapeBadge>
-            </Link>
-          }
-          bottom={
-            <Link
-              to={href('/profile')}
-              className="cx-nav-item"
-              aria-current={pathname.endsWith('/profile') ? 'page' : undefined}
-            >
-              <span className="cx-nav-ind">
-                <Avatar size={28} />
-              </span>
-              <span className="cx-nav-label t-label-m">Profile</span>
-            </Link>
-          }
-        />
-      )}
-      <main>
-        <Routes>
-          <Route index element={<TodayScreen />} />
-          <Route path="week" element={<WeekScreen />} />
-          <Route path="rooms" element={<RoomsScreen />} />
-          <Route path="rooms/:code" element={<RoomsScreen />} />
-          <Route path="deadlines" element={<DeadlinesScreen />} />
-          <Route path="deadlines/:id" element={<DeadlinesScreen />} />
-          <Route path="profile" element={<ProfileScreen />} />
-          <Route path="*" element={<Navigate to={href('')} replace />} />
-        </Routes>
-      </main>
-      {compact && !detail && <NavBar />}
-      <ClassSheet />
+                <span className="cx-nav-label t-label-m">Profile</span>
+              </Link>
+            }
+          />
+        )}
+        <main>
+          <Routes>
+            <Route index element={<TodayScreen />} />
+            <Route path="week" element={<WeekScreen />} />
+            <Route path="deadlines" element={<DeadlinesScreen />} />
+            <Route path="deadlines/:id" element={<DeadlinesScreen />} />
+            <Route path="courses" element={<CoursesScreen />} />
+            <Route path="courses/:short" element={<CoursesScreen />} />
+            <Route path="profile" element={<ProfileScreen />} />
+            <Route path="*" element={<Navigate to={href('')} replace />} />
+          </Routes>
+        </main>
+        {compact && !detail && <NavBar />}
+      </div>
+      <ClassPanelHost />
     </>
   )
 }
 
-/** The class detail: a modal bottom sheet on the phone, a side sheet on wider windows. */
-function ClassSheet() {
-  const { data } = useProto()
+/**
+ * The class detail. Phone: a bottom sheet. Wide: a side panel that a calendar block grows into
+ * (the block's fill moves into place), or slides in when opened from a list.
+ */
+function ClassPanelHost() {
+  const { data, origin, setOrigin, looks } = useProto()
   const { compact } = useWindowClass()
   const [key, , close] = useSheetParam('class')
   const c = findClass(data, key)
-  const [shown, setShown] = useState<Cls | null>(c)
-  if (c && c.key !== shown?.key) setShown(c)
-  const body = c ?? shown
+  // Remember what had focus when the panel opened, to give it back on close.
+  const [opener, setOpener] = useState<{ key: string | null; el: HTMLElement | null }>({
+    key: null,
+    el: null,
+  })
+  if (key !== opener.key)
+    setOpener({ key, el: key ? (document.activeElement as HTMLElement | null) : opener.el })
+  const layoutId = !compact && c && origin === `wk-${c.key}` ? origin : undefined
+  const tone = c ? looks.get(shortOf(c.o))?.tone : undefined
+  const onClose = () => {
+    const el = opener.el
+    close()
+    window.setTimeout(() => {
+      el?.focus({ preventScroll: true })
+      setOrigin(null)
+    }, 450)
+  }
   return (
-    <Modal
+    <Panel
       open={!!c}
-      onClose={close}
-      label={body ? body.o.subject : 'Class'}
-      variant={compact ? 'bottom' : 'side'}
+      onClose={onClose}
+      label={c ? c.o.subject : 'Class'}
+      wide={!compact}
+      layoutId={layoutId}
+      fromColor={tone ? themeColor(`--cx-${tone}-container`) : undefined}
+      title="Class"
     >
-      {body &&
-        (compact ? (
-          <ClassDetail c={body} />
-        ) : (
-          <>
-            <div className="flex items-center gap-2 px-4 pt-3 pb-1">
-              <span className="t-title-l flex-1 px-2">Class</span>
-              <button
-                type="button"
-                className="cx-icon-btn cx-state"
-                aria-label="Close"
-                onClick={close}
-                autoFocus
-              >
-                <Icon name="close" />
-              </button>
-            </div>
-            <div className="overflow-y-auto px-6 pb-6">
-              <ClassDetail c={body} />
-            </div>
-          </>
-        ))}
-    </Modal>
+      {c && <ClassDetail c={c} />}
+    </Panel>
   )
 }
 
@@ -246,7 +309,7 @@ function DemoTime({
   const [open, setOpen] = useState(false)
   const { compact } = useWindowClass()
   const { pathname } = useLocation()
-  const detail = /\/(rooms|deadlines)\/[^/]+$|\/profile$/.test(pathname)
+  const detail = /\/(deadlines|courses)\/[^/]+$|\/profile$|\/sign-in$/.test(pathname)
   const active = scenarios.find((s) => scenarioStart(s) === start)
   const note = {
     background: '#ffe169',

@@ -2,18 +2,22 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useHref, useProto, useSnackbar } from '../ctx'
 import { Icon } from '../icons'
+import { allDue, DUE_ICON, isDone, KIND_TEXT } from '../campus'
 import {
+  classKind,
   classLabel,
+  dueLabel,
   duration,
   hhmm,
+  KIND_ICON,
   kindOf,
   longDate,
   phaseOf,
-  roomStatus,
   shortOf,
   weekNumber,
   type Cls,
 } from '../model'
+import { directionsUrl, placeOf } from '../places'
 import { SwitchRow } from './Controls'
 import { SubjectAvatar } from './Shape'
 
@@ -41,9 +45,12 @@ export function ClassRow({ c, onOpen }: { c: Cls; onOpen: (c: Cls) => void }) {
         <span className={`t-body-l line-clamp-2 ${phase === 'past' ? 'c-muted' : ''}`}>
           {c.o.subject}
         </span>
-        <span className="t-body-m c-muted truncate">
-          {kindOf(c)} in{' '}
-          <span className="t-narrow font-semibold">{c.o.room ?? 'a room not set yet'}</span>
+        <span className="t-body-m c-muted flex items-center gap-1.5 truncate">
+          <Icon name={KIND_ICON[classKind(c)]} size={16} />
+          <span className="truncate">
+            {kindOf(c)} in{' '}
+            <span className="t-narrow font-semibold">{c.o.room ?? 'a room not set yet'}</span>
+          </span>
         </span>
       </span>
       <span className="cx-item-trail">
@@ -64,15 +71,21 @@ export function ClassRow({ c, onOpen }: { c: Cls; onOpen: (c: Cls) => void }) {
 
 const reminders = new Set<string>()
 
-/** The class detail: live state, the room as a way into that room's day, reminder, Campus Virtual. */
-export function ClassDetail({ c, onNavigate }: { c: Cls; onNavigate?: () => void }) {
-  const { data, now, looks } = useProto()
+/** The class detail: live state, where it is (building, floor, directions), reminder, the course. */
+export function ClassDetail({ c }: { c: Cls }) {
+  const { data, now, looks, campus, account } = useProto()
   const href = useHref()
   const snack = useSnackbar()
   const [remind, setRemind] = useState(() => reminders.has(c.key))
   const phase = phaseOf(c, now.date, now.minutes)
   const look = looks.get(shortOf(c.o))
   const week = weekNumber(data, c.date)
+  const place = placeOf(c.o.room)
+  const kind = classKind(c)
+  const due = allDue(data, campus, !!account?.uptLinked)
+    .filter((d) => d.short === shortOf(c.o) && !isDone(d))
+    .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
+    .slice(0, 3)
 
   let live: string
   if (phase === 'now') live = `Now, ${duration(c.end - now.minutes)} left`
@@ -80,19 +93,7 @@ export function ClassDetail({ c, onNavigate }: { c: Cls; onNavigate?: () => void
     live = c.date === now.date ? `Ended at ${hhmm(c.end)}` : `Was on ${longDate(c.date)}`
   else if (c.date === now.date) live = `Starts in ${duration(c.start - now.minutes)}`
   else live = longDate(c.date)
-
-  const status =
-    c.o.room && c.date === now.date ? roomStatus(data, c.o.room, c.date, now.minutes) : null
-  let roomLine = 'See what else is on in this room'
-  if (status?.known) {
-    if (phase === 'now') roomLine = 'You are in this class now'
-    else if (status.free)
-      roomLine =
-        status.until === null
-          ? 'Free for the rest of the day'
-          : `Free now, until ${hhmm(status.until)}`
-    else roomLine = `In use now, until ${hhmm(status.until)}`
-  }
+  const isLive = phase === 'now' || (phase === 'future' && c.date === now.date)
 
   return (
     <div className="pt-1">
@@ -101,16 +102,15 @@ export function ClassDetail({ c, onNavigate }: { c: Cls; onNavigate?: () => void
           <SubjectAvatar short={shortOf(c.o)} tone={look.tone} shape={look.shape} size={52} />
         )}
         <div className="flex flex-wrap gap-1.5">
-          <span className="cx-chip cx-chip--small">{kindOf(c)}</span>
+          <span className="cx-chip cx-chip--small">
+            <Icon name={KIND_ICON[kind]} size={14} />
+            {kindOf(c)}
+          </span>
           {c.o.optional && <span className="cx-chip cx-chip--small">Optional</span>}
         </div>
       </div>
       <h2 className="t-headline-s mt-3">{c.o.subject}</h2>
-      <p
-        className={`t-title-m mt-1 ${phase === 'now' || (phase === 'future' && c.date === now.date) ? 'c-live' : 'c-muted'}`}
-      >
-        {live}
-      </p>
+      <p className={`t-title-m mt-1 ${isLive ? 'c-live' : 'c-muted'}`}>{live}</p>
 
       <ul className="cx-list mt-5">
         <li className="cx-item">
@@ -127,24 +127,32 @@ export function ClassDetail({ c, onNavigate }: { c: Cls; onNavigate?: () => void
             </span>
           </span>
         </li>
-        {c.o.room && (
-          <li>
-            <Link
-              to={href(`/rooms/${encodeURIComponent(c.o.room)}`, { day: c.date })}
-              className="cx-item cx-state"
-              onClick={onNavigate}
+        <li className="cx-item cx-item--three">
+          <span className="cx-item-lead">
+            <Icon name="locationOn" />
+          </span>
+          <span className="cx-item-body">
+            <span className="t-body-l">
+              Room <span className="t-narrow font-semibold">{c.o.room ?? 'not set yet'}</span>
+              {place?.floor ? `, ${place.floor}` : ''}
+            </span>
+            <span className="t-body-m c-muted">
+              {place ? place.building.name : 'Building not known yet'}
+            </span>
+          </span>
+          {place && (
+            <a
+              href={directionsUrl(place)}
+              target="_blank"
+              rel="noreferrer"
+              className="cx-btn cx-btn--tonal cx-state flex-none !px-4"
+              aria-label={`Directions to the ${place.building.name}`}
             >
-              <span className="cx-item-lead">
-                <Icon name="meetingRoom" />
-              </span>
-              <span className="cx-item-body">
-                <span className="t-body-l t-narrow font-semibold">{c.o.room}</span>
-                <span className="t-body-m c-muted">{roomLine}</span>
-              </span>
-              <Icon name="chevronRight" className="c-muted" />
-            </Link>
-          </li>
-        )}
+              <Icon name="directions" size={18} />
+              Directions
+            </a>
+          )}
+        </li>
         <li className="cx-item">
           <span className="cx-item-lead">
             <Icon name="person" />
@@ -153,7 +161,7 @@ export function ClassDetail({ c, onNavigate }: { c: Cls; onNavigate?: () => void
             <span className="t-body-l">{c.o.teacher ?? 'No teacher listed'}</span>
             {!c.o.teacher && (
               <span className="t-body-m c-muted">
-                The timetable doesn't name one for this {kindOf(c).toLowerCase()}
+                The timetable doesn&rsquo;t name one for this {kindOf(c).toLowerCase()}
               </span>
             )}
           </span>
@@ -165,35 +173,62 @@ export function ClassDetail({ c, onNavigate }: { c: Cls; onNavigate?: () => void
               setRemind(v)
               if (v) reminders.add(c.key)
               else reminders.delete(c.key)
-              snack(v ? `You'll be reminded at ${hhmm(c.start - 10)}` : 'Reminder off')
+              snack(v ? `You\u2019ll be reminded at ${hhmm(c.start - 10)}` : 'Reminder off')
             }}
             icon={remind ? 'notificationsActive' : 'notifications'}
             label="Remind me"
-            supporting="10 minutes before, on this phone"
+            supporting="10 minutes before, with the room and building"
           />
         </li>
-        {c.o.optional && (
-          <li className="cx-item">
-            <span className="cx-item-lead">
-              <Icon name="school" />
-            </span>
-            <span className="cx-item-body">
-              <span className="t-body-l">Optional subject</span>
-              <span className="t-body-m c-muted">You chose it in the timetable setup</span>
-            </span>
-          </li>
-        )}
       </ul>
 
+      <h3 className="cx-section-title">In this course</h3>
+      <ul className="cx-list">
+        {due.map((d) => (
+          <li key={d.id}>
+            <Link to={href(`/deadlines/${d.id}`)} className="cx-item cx-state">
+              <span className="cx-item-lead">
+                <Icon name={DUE_ICON[d.kind]} />
+              </span>
+              <span className="cx-item-body">
+                <span className="t-body-l line-clamp-2">{d.name}</span>
+                <span className="t-body-m c-muted">
+                  {KIND_TEXT[d.kind]}, due {dueLabel(d.dueAt, now).toLowerCase()}
+                </span>
+              </span>
+              <Icon name="chevronRight" className="c-muted" />
+            </Link>
+          </li>
+        ))}
+        <li>
+          <Link
+            to={href(`/courses/${encodeURIComponent(shortOf(c.o))}`)}
+            className="cx-item cx-state"
+          >
+            <span className="cx-item-lead">
+              <Icon name="menuBook" />
+            </span>
+            <span className="cx-item-body">
+              <span className="t-body-l">Course page</span>
+              <span className="t-body-m c-muted">Sections, files and your grades</span>
+            </span>
+            <Icon name="chevronRight" className="c-muted" />
+          </Link>
+        </li>
+      </ul>
+
+      {c.o.optional && (
+        <p className="t-body-s c-muted mt-4 px-1">You chose this subject in the timetable setup.</p>
+      )}
       {c.o.campusVirtualUrl && (
         <a
           href={c.o.campusVirtualUrl}
           target="_blank"
           rel="noreferrer"
-          className="cx-btn cx-btn--tonal cx-btn--lg cx-state mt-5 w-full"
+          className="cx-btn cx-btn--text cx-state mt-3 -ml-3"
         >
-          <Icon name="openInNew" size={20} />
-          Open in Campus Virtual
+          <Icon name="openInNew" size={18} />
+          Open on the Campus Virtual website
         </a>
       )}
     </div>

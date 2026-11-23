@@ -79,8 +79,8 @@ interface Destination {
 const destinations: Destination[] = [
   { path: '', label: 'Today', icon: 'today', iconSelected: 'todayFill' },
   { path: '/week', label: 'Week', icon: 'calendarViewWeek', iconSelected: 'calendarViewWeekFill' },
-  { path: '/rooms', label: 'Rooms', icon: 'meetingRoom', iconSelected: 'meetingRoomFill' },
   { path: '/deadlines', label: 'Deadlines', icon: 'assignment', iconSelected: 'assignmentFill' },
+  { path: '/courses', label: 'Courses', icon: 'menuBook', iconSelected: 'menuBookFill' },
 ]
 
 function useCurrent() {
