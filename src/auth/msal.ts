@@ -1,5 +1,6 @@
 import {
   type AuthenticationResult,
+  BrowserAuthError,
   type Configuration,
   PublicClientApplication,
 } from '@azure/msal-browser'
@@ -16,73 +17,143 @@ export const msalConfig: Configuration = {
       typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173',
   },
   cache: {
-    // Per tab: closing the tab forgets the tokens.
+    // Per tab, and cleared right after use: the Microsoft token is only handed to the API once.
     cacheLocation: 'sessionStorage',
+  },
+  system: {
+    // How long a popup sign-in may take before MSAL gives up (its default is one minute, less
+    // than a password plus an Authenticator prompt can take). A closed window doesn't need the
+    // time-out: starting again replaces it (`microsoftAccessToken`).
+    popupBridgeTimeout: 15 * 60_000,
   },
 }
 
 export const msalInstance = new PublicClientApplication(msalConfig)
 
+/**
+ * What a Microsoft sign-in is for. It travels as MSAL's `state`, so a redirect sign-in (the
+ * fallback when the popup is blocked) knows on its way back what to finish.
+ */
+export type UptIntent = 'sign-in' | 'link'
+
 /** How the page load ended for a redirect sign-in: its result, its error, or neither. */
 export interface RedirectOutcome {
+  intent: UptIntent
   result: AuthenticationResult | null
   error: unknown
 }
 
-/**
- * MSAL must be initialized before any other call, and a redirect sign-in (the fallback when the
- * popup is blocked) is finished by `handleRedirectPromise` on the page Microsoft sends back to.
- * A failed redirect sign-in (consent refused, an AADSTS error) is kept, not swallowed, so the
- * sign-in screen can say why.
- */
-export const redirectOutcome: Promise<RedirectOutcome> = msalInstance
-  .initialize()
-  .then(() => msalInstance.handleRedirectPromise())
-  .then(
-    (result) => {
-      if (result?.account) msalInstance.setActiveAccount(result.account)
-      return { result, error: null }
-    },
-    (error: unknown) => ({ result: null, error }),
-  )
-
-/** Everything that touches MSAL waits on this. */
-export const msalReady: Promise<void> = redirectOutcome.then(() => undefined)
-
-function currentAccount() {
-  return msalInstance.getActiveAccount() ?? msalInstance.getAllAccounts()[0] ?? null
+function intentOf(state: string | null | undefined): UptIntent | null {
+  return state === 'link' || state === 'sign-in' ? state : null
 }
 
-/** Whether this tab holds a signed-in account (after `msalReady`). */
-export function hasSignedInAccount(): boolean {
-  try {
-    return currentAccount() !== null
-  } catch {
-    return false
-  }
-}
+/** Set before a redirect starts, so a failed one (no result, so no state) still knows its intent. */
+const redirectIntentKey = 'campuspulse.uptRedirectIntent'
 
-/**
- * A valid access token for the CampusPulse API, or null when nobody is signed in or the session
- * can't be renewed silently. MSAL refreshes it from its cache. A signed-in student whose request
- * then goes out without a token gets a 401, and `api/client.ts` signs them out with a reason.
- */
-export async function getAccessToken(): Promise<string | null> {
-  await msalReady
-  const account = currentAccount()
-  if (!account) return null
+function takeRedirectIntent(): UptIntent | null {
   try {
-    const result = await msalInstance.acquireTokenSilent({ ...loginRequest, account })
-    return result.accessToken
+    const value = sessionStorage.getItem(redirectIntentKey)
+    sessionStorage.removeItem(redirectIntentKey)
+    return intentOf(value)
   } catch {
     return null
   }
 }
 
-/** Forgets the signed-in account on this device only (the Microsoft session stays). */
-export async function forgetAccount(): Promise<void> {
+/**
+ * MSAL must be initialized before any other call, and a redirect sign-in is finished by
+ * `handleRedirectPromise` on the page Microsoft sends back to. A failed redirect sign-in (consent
+ * refused, an AADSTS error) is kept, not swallowed, so the screen can say why.
+ */
+export const redirectOutcome: Promise<RedirectOutcome | null> = msalInstance
+  .initialize()
+  .then(() => msalInstance.handleRedirectPromise())
+  .then(
+    (result) => {
+      const stored = takeRedirectIntent()
+      if (!result) return null
+      return { intent: intentOf(result.state) ?? stored ?? 'sign-in', result, error: null }
+    },
+    (error: unknown) => {
+      const stored = takeRedirectIntent()
+      return { intent: stored ?? 'sign-in', result: null, error }
+    },
+  )
+
+/** Everything that touches MSAL waits on this. */
+export const msalReady: Promise<void> = redirectOutcome.then(() => undefined)
+
+export function isPopupBlocked(err: unknown): boolean {
+  return (
+    err instanceof BrowserAuthError &&
+    (err.errorCode === 'popup_window_error' || err.errorCode === 'empty_window_error')
+  )
+}
+
+/**
+ * The student cancelled, or opened a new Microsoft window: MSAL v5 can't see a popup being closed
+ * (it waits for the answer on a BroadcastChannel), and a newer attempt cancels the older one's
+ * wait. A wait that runs out (`timed_out`, after `popupBridgeTimeout`) is not a cancel: it says so.
+ */
+export function isCancelled(err: unknown): boolean {
+  return (
+    err instanceof BrowserAuthError &&
+    ['user_cancelled', 'user_cancelled_interaction', 'interaction_in_progress_cancelled'].includes(
+      err.errorCode,
+    )
+  )
+}
+
+/** The outcome of asking Microsoft for a UPT access token. */
+export type MicrosoftToken =
+  | { kind: 'token'; accessToken: string }
+  | { kind: 'cancelled' }
+  /** The popup was blocked, so the page is on its way to Microsoft; it comes back to finish. */
+  | { kind: 'redirecting' }
+
+/**
+ * Signs in with Microsoft (UPT's tenant) in a popup and returns the access token for our API.
+ * Always lets the student pick the account. When the popup is blocked, starts a redirect instead.
+ * Throws MSAL's error for anything else (consent refused, an AADSTS error).
+ *
+ * Calling it again while a popup is still open replaces that attempt (the older call then
+ * resolves `cancelled`): MSAL can't tell that a popup was closed, so the student's way out of a
+ * closed one is to start again. The app runs one Microsoft step at a time, which is what
+ * `overrideInteractionInProgress` needs to be safe.
+ */
+export async function microsoftAccessToken(intent: UptIntent): Promise<MicrosoftToken> {
   await msalReady
-  const account = currentAccount()
-  await msalInstance.clearCache(account ? { account } : undefined)
-  msalInstance.setActiveAccount(null)
+  const request = { ...loginRequest, prompt: 'select_account', state: intent }
+  try {
+    const result = await msalInstance.loginPopup({
+      ...request,
+      overrideInteractionInProgress: true,
+    })
+    return { kind: 'token', accessToken: result.accessToken }
+  } catch (err) {
+    if (isCancelled(err)) return { kind: 'cancelled' }
+    if (!isPopupBlocked(err)) throw err
+  }
+  try {
+    sessionStorage.setItem(redirectIntentKey, intent)
+  } catch {
+    // Storage blocked: a failed redirect is then reported as a sign-in.
+  }
+  await msalInstance.loginRedirect(request)
+  return { kind: 'redirecting' }
+}
+
+/**
+ * Forgets the Microsoft account in this tab (the Microsoft session itself stays, so the student
+ * isn't signed out of Outlook, Teams and every other UPT app). Called right after each token is
+ * handed to the API: from then on only our own tokens are used.
+ */
+export async function forgetMicrosoft(): Promise<void> {
+  try {
+    await msalReady
+    await msalInstance.clearCache()
+    msalInstance.setActiveAccount(null)
+  } catch {
+    // Nothing to forget, or storage blocked.
+  }
 }

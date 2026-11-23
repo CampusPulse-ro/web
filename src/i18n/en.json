@@ -14,24 +14,106 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "timetable": "Timetable"
+    "timetable": "Timetable",
+    "deadlines": "Deadlines",
+    "main": "Main",
+    "account": "Account",
+    "accountMenu": "Account menu"
   },
   "auth": {
     "signIn": "Sign in",
-    "signInWithMicrosoft": "Sign in with Microsoft",
     "signOut": "Sign out",
-    "signingIn": "Signing in…",
-    "signingOut": "Signing out…",
     "checkingSession": "Checking session…",
-    "signInRequiredTitle": "Sign in required",
-    "signInRequiredDesc": "Please sign in with your student Microsoft account (@student.upt.ro) to access your timetable and student dashboard.",
-    "studentAccountOnly": "UPT student accounts only",
-    "signedInAs": "Signed in as",
-    "authError": "Authentication error",
-    "sessionExpired": "Your session has expired. Please sign in again.",
-    "dismissError": "Dismiss error",
-    "accountGone": "Your account was deleted, so you've been signed out.",
-    "setupFailed": "Sign-in didn't finish: the CampusPulse server couldn't set up your account. Try again."
+    "unreachableTitle": "Can't reach CampusPulse",
+    "unreachableBody": "You're still signed in, but the server isn't answering. Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "signIn": {
+    "title": "Sign in to CampusPulse",
+    "subtitle": "New here? Signing in creates your account.",
+    "continueWithUpt": "Continue with UPT",
+    "uptWhy": "Your deadlines and Campus Virtual come with it.",
+    "uptWaiting": "Finish signing in in the Microsoft window. Closed it? Select Continue with UPT again.",
+    "useEmail": "Or use your email",
+    "emailTitle": "Sign in with your email",
+    "dismiss": "Dismiss",
+    "reasons": {
+      "sessionExpired": "Your session has expired. Sign in again.",
+      "accountGone": "Your account was deleted, so you've been signed out.",
+      "accountDeleted": "Your account was deleted."
+    },
+    "problems": {
+      "identity-in-use": "That UPT account already belongs to another CampusPulse account. To use it, sign out and continue with UPT.",
+      "already-linked": "This account is already linked to a different UPT account. Unlink that one first.",
+      "microsoft-token-invalid": "Microsoft signed you in, but not with a UPT account this app accepts. Use your UPT student account.",
+      "microsoft-unavailable": "Signing in with UPT doesn't work right now. Try again later, or use your email.",
+      "sign-in-unavailable": "Signing in doesn't work on the server right now. Try again later.",
+      "rate-limited": "Too many attempts. Wait a little and try again.",
+      "unreachable": "Can't reach CampusPulse. Check your connection and try again.",
+      "microsoft-timeout": "The Microsoft sign-in took too long. Try again.",
+      "microsoft-error": "Microsoft couldn't sign you in.",
+      "unknown": "Something went wrong. Try again."
+    },
+    "email": {
+      "label": "Email",
+      "send": "Send code",
+      "codeSentTo": "Enter the 6-digit code we sent to <email>{{email}}</email>.",
+      "codeLabel": "Code",
+      "codeHint": "It works until {{time}}. Not there? Check your spam folder.",
+      "verify": "Sign in",
+      "resend": "Send a new code",
+      "resendIn": "Send a new code in {{seconds}} s",
+      "resent": "We sent a new code. Only the newest one works.",
+      "differentEmail": "Use a different email",
+      "errors": {
+        "invalidEmail": "Enter an email address like name@example.com.",
+        "emailRequired": "Enter your email address.",
+        "invalidCode": "That code isn't right, or it has expired. Check the newest email.",
+        "codeBurned": "Too many wrong tries: this code no longer works. Send a new one.",
+        "tooManyCodes": "Too many codes for this address. Try again later.",
+        "tooManyCodesUntil": "Too many codes for this address. Try again after {{time}}.",
+        "rateLimitedUntil": "Too many attempts from this network. Try again after {{time}}.",
+        "emailUnavailable": "We couldn't send the email right now. Try again, or continue with UPT.",
+        "expired": "This code has expired. Send a new one."
+      }
+    }
+  },
+  "account": {
+    "title": "Account",
+    "methodsTitle": "How you sign in",
+    "email": {
+      "label": "Email",
+      "none": "None: you sign in with UPT."
+    },
+    "upt": {
+      "label": "UPT account",
+      "linkedNoEmail": "Linked",
+      "linkedOn": "Linked on {{date}}",
+      "notLinked": "Not linked",
+      "why": "Link it to get your deadlines and Campus Virtual.",
+      "waiting": "Finish in the Microsoft window. Closed it? Select Link UPT account again.",
+      "link": "Link UPT account",
+      "unlink": "Unlink",
+      "lastMethod": "UPT is your only way to sign in, so it can't be unlinked.",
+      "unlinkFailed": "Couldn't unlink your UPT account. Try again.",
+      "linked": "Your UPT account is linked.",
+      "unlinked": "Your UPT account is unlinked.",
+      "unlinkTitle": "Unlink your UPT account?",
+      "unlinkBody": "You'll sign in with {{email}} from now on. Your deadlines and settings stay.",
+      "cancel": "Cancel",
+      "unlinkConfirm": "Unlink"
+    }
+  },
+  "deleteAccount": {
+    "title": "Delete account",
+    "body": "Deletes your account and everything in it, on every device: your sign-in methods, deadlines, settings and reminders. It can't be undone.",
+    "button": "Delete account",
+    "confirmTitle": "Delete your account?",
+    "confirmBody": "Everything in it is deleted for good, and every device is signed out.",
+    "typeToConfirm": "Type <value>{{value}}</value> to confirm",
+    "failed": "Couldn't delete your account. Try again.",
+    "cancel": "Cancel",
+    "confirm": "Delete account"
   },
   "draftNotice": "Draft: this page is a placeholder and is not the final text.",
   "home": {
@@ -93,6 +175,11 @@
     "title": "Your student dashboard",
     "greetingWithName": "Welcome back, {{name}}",
     "subtitle": "Your classes, deadlines and campus information, all in one place.",
+    "linkUpt": {
+      "message": "Link your UPT account to get your deadlines automatically.",
+      "action": "Link UPT",
+      "dismiss": "Hide this"
+    },
     "body": "The web version of CampusPulse will live here. Nothing to see yet.",
     "sampleClasses": {
       "msa": "Mobile Systems and Applications",
@@ -125,12 +212,12 @@
     },
     "comingUp": {
       "title": "Coming up",
-      "exampleDeadline": "Example deadline",
-      "msaMilestone": "MSA project milestone",
-      "msaNotice": "Real assignment deadlines are not connected yet.",
       "exams": "Exams",
       "examSchedule": "Your exam schedule",
-      "examNotice": "Exam dates will appear here when available."
+      "examNotice": "Exam dates will appear here when available.",
+      "deadlines": "Your deadlines",
+      "noDeadlines": "Nothing due. Add a deadline to keep track of it.",
+      "allDeadlines": "All deadlines"
     },
     "studySpaces": {
       "title": "Study spaces",
@@ -178,13 +265,84 @@
     "noClassesSubtitle": "Enjoy your free day!",
     "demoNotice": "Demo timetable: sample classes only. Official class times and rooms are not connected yet."
   },
+  "deadlines": {
+    "title": "Deadlines",
+    "subtitle": "Your own deadlines, in Timișoara time.",
+    "add": "Add deadline",
+    "campusVirtualLater": "Your Campus Virtual deadlines will show up here too once Campus Virtual comes to the web.",
+    "linkForCampusVirtual": "Link your UPT account and, once Campus Virtual comes to the web, your deadlines will fill in by themselves.",
+    "linkUpt": "Link UPT",
+    "loading": "Loading your deadlines…",
+    "retry": "Try again",
+    "loadFailed": "Couldn't load your deadlines.",
+    "emptyTitle": "No deadlines yet",
+    "emptyBody": "Add the ones you want to keep track of: a lab report, a project milestone, an exam.",
+    "allDone": "Everything's done.",
+    "groups": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "thisWeek": "This week",
+      "later": "Later",
+      "done": "Done"
+    },
+    "dueToday": "Today, {{time}}",
+    "dueTomorrow": "Tomorrow, {{time}}",
+    "dueYesterday": "Yesterday, {{time}}",
+    "dueOn": "{{day}}, {{time}}",
+    "saveFailed": "Couldn't save. Try again.",
+    "doneFailed": "Couldn't save that change, so it was put back. Try again.",
+    "edit": "Edit",
+    "editNamed": "Edit {{title}}",
+    "deleteNamed": "Delete {{title}}",
+    "form": {
+      "addTitle": "Add a deadline",
+      "editTitle": "Edit deadline",
+      "title": "Title",
+      "course": "Course",
+      "optional": "Optional",
+      "due": "Due",
+      "date": "Date",
+      "time": "Time",
+      "campusTime": "Timișoara time.",
+      "notes": "Notes",
+      "titleRequired": "Give it a title.",
+      "dueRequired": "Choose the date and time it's due.",
+      "limit": "You have 500 deadlines, the most an account can keep. Delete some done ones first.",
+      "cancel": "Cancel",
+      "save": "Save",
+      "addSubmit": "Add deadline"
+    },
+    "delete": {
+      "title": "Delete this deadline?",
+      "body": "“{{title}}” will be deleted.",
+      "failed": "Couldn't delete it. Try again.",
+      "confirm": "Delete"
+    }
+  },
   "privacy": {
     "title": "Privacy policy",
     "body": "This page will describe what data CampusPulse collects, why, where it is stored, how long it is kept, and how to contact us. Google Play requires it before the app can be published."
   },
   "accountDeletion": {
     "title": "Delete your account",
-    "body": "This page will explain how to delete your CampusPulse account and which data is removed. Google Play requires a web page for this, separate from the option inside the app."
+    "intro": "You can delete your CampusPulse account at any time, here or in the app. It can't be undone.",
+    "done": "Your account and everything in it were deleted, and you're signed out.",
+    "whatTitle": "What gets deleted",
+    "what": {
+      "account": "Your account: its email and name",
+      "methods": "Your linked UPT account",
+      "sessions": "Every session, so every device is signed out",
+      "deadlines": "Your deadlines",
+      "settings": "Your study group, subjects and class reminder settings",
+      "devices": "The phones registered for class reminders"
+    },
+    "campusVirtual": "Your Campus Virtual connection is never sent to CampusPulse: it lives only on your phone, and goes when you disconnect it or remove the app.",
+    "keptTitle": "What stays",
+    "kept": "Only a count of how many accounts were deleted each day, with nothing that identifies you. Deleted data stays only in our system-wide backups, is never used for anything, and is gone from them after at most about a year.",
+    "howTitle": "How to delete it",
+    "signedInAs": "You're signed in as <name>{{name}}</name>.",
+    "signInFirst": "Sign in to delete your account here.",
+    "contact": "Can't sign in? Write to <mail>{{email}}</mail> from the address on your account, and we'll delete it for you."
   },
   "notFound": {
     "title": "Page not found",

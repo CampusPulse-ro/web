@@ -12,10 +12,3 @@ export function useAuth(): AuthContextValue {
 
   return context
 }
-
-/** Why the student was signed out; ProtectedRoute shows the matching message. */
-export const AUTH_ERRORS = {
-  sessionExpired: 'SESSION_EXPIRED',
-  accountGone: 'ACCOUNT_GONE',
-  setupFailed: 'ACCOUNT_SETUP_FAILED',
-} as const

@@ -14,13 +14,17 @@ export function LanguageSwitch() {
             lang={language}
             aria-pressed={active}
             onClick={() => setLanguage(language)}
-            className={`min-h-11 cursor-pointer rounded-md border px-3 ${
+            className={`min-h-11 min-w-11 cursor-pointer rounded-md border px-2 sm:px-3 ${
               active
                 ? 'border-accent bg-accent/15 text-ink'
                 : 'border-line bg-transparent text-ink-muted hover:text-ink'
             }`}
           >
-            {t(`language.${language}`)}
+            {/* At phone width the header has room for the code only; the full name stays the label. */}
+            <span aria-hidden="true" className="sm:hidden">
+              {language.toUpperCase()}
+            </span>
+            <span className="max-sm:sr-only">{t(`language.${language}`)}</span>
           </button>
         )
       })}

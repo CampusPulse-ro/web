@@ -7,88 +7,132 @@
  * `ApiError` for anything else, so TanStack Query sees the failure.
  */
 import createClient from 'openapi-fetch'
-import { getAccessToken, hasSignedInAccount } from '../auth/msal'
 import { apiBase } from '../config'
-import type { paths } from './schema'
+import type { components, paths } from './schema'
+
+export type Me = components['schemas']['MeResponse']
+export type TokenResponse = components['schemas']['TokenResponse']
+export type Deadline = components['schemas']['DeadlineResponse']
 
 /** Every request gives up after this long instead of hanging the screen. */
 const timeoutMs = 8000
+/**
+ * `/auth/*` waits longer than the API's own request timeout (30 s), so a client that gives up
+ * means the server gave up too. A refresh the server finished while the client had already
+ * stopped waiting would leave the client holding a rotated token, and showing that one again
+ * later ends the session.
+ */
+const authTimeoutMs = 35_000
 
-let onUnauthorizedHandler: (() => void) | null = null
-let onAccountGoneHandler: (() => void) | null = null
-
-/** Called when the API refuses the token (401): the session is over. */
-export function setOnUnauthorized(handler: (() => void) | null) {
-  onUnauthorizedHandler = handler
+/**
+ * How requests get the signed-in student's access token, set by `auth/session.ts` (which owns the
+ * tokens). Kept as hooks so this file doesn't import the session, which imports `api`.
+ */
+export interface SessionHooks {
+  /** A valid access token, refreshed first if it is about to expire; null when signed out. */
+  accessToken(): Promise<string | null>
+  /** The API refused `rejected` (401): a new token to retry with once, or null (signed out). */
+  replaceRejected(rejected: string): Promise<string | null>
+  /** Even a fresh token was refused: the session is over. */
+  sessionRefused(): void
+  /** A `GET /me…` answered 404: the account was deleted, maybe from another device. */
+  accountGone(): void
 }
 
-/** Called when a `GET /me…` answers 404: the account was deleted, maybe from another device. */
-export function setOnAccountGone(handler: (() => void) | null) {
-  onAccountGoneHandler = handler
+let session: SessionHooks | null = null
+
+export function setSessionHooks(hooks: SessionHooks | null) {
+  session = hooks
 }
 
-export const api = createClient<paths>({
-  baseUrl: apiBase,
-  fetch: (request: Request) =>
-    fetch(
-      new Request(request, {
-        signal: AbortSignal.any([request.signal, AbortSignal.timeout(timeoutMs)]),
-      }),
-    ),
-})
+/** The request's path on the API (without the base's own path, if it has one). */
+function apiPath(request: Request): string {
+  const base = new URL(apiBase || window.location.origin).pathname.replace(/\/+$/, '')
+  const path = new URL(request.url).pathname
+  return base && path.startsWith(base) ? path.slice(base.length) || '/' : path
+}
 
-/** `POST /me` (account setup after a sign-in) reports its own failure; see `createAccount`. */
-function isAccountSetup(request: Request): boolean {
-  return request.method === 'POST' && new URL(request.url).pathname === '/me'
+function send(request: Request, timeout = timeoutMs): Promise<Response> {
+  return fetch(
+    new Request(request, {
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(timeout)]),
+    }),
+  )
 }
 
 /**
- * Every request carries the signed-in student's access token when one can be had. A 401 while a
- * student is signed in means the session is over, whether the token was refused or couldn't be
- * renewed (then the request went out without one): sign out and say so.
+ * A 401 about our bearer token comes with no body (only `WWW-Authenticate`). A 401 an endpoint
+ * answers itself is a ProblemDetails about something in the request, e.g. linking UPT with a
+ * Microsoft token the API refuses (`microsoft-token-invalid`): that's not the session's fault.
  */
-api.use({
-  async onRequest({ request }) {
-    if (request.headers.has('Authorization')) return
-    const token = await getAccessToken()
-    if (token) request.headers.set('Authorization', `Bearer ${token}`)
-  },
-  async onResponse({ request, response }) {
-    if (isAccountSetup(request)) return
-    if (response.status === 401) {
-      if (hasSignedInAccount()) onUnauthorizedHandler?.()
-    } else if (
-      response.status === 404 &&
-      request.headers.has('Authorization') &&
-      request.method === 'GET' &&
-      /^\/me(\/|$)/.test(new URL(request.url).pathname)
-    ) {
-      onAccountGoneHandler?.()
-    }
-  },
-})
+function refusesBearer(response: Response): boolean {
+  return (
+    response.status === 401 &&
+    !(response.headers.get('Content-Type') ?? '').includes('application/problem+json')
+  )
+}
+
+function withBearer(request: Request, token: string): Request {
+  const authorized = new Request(request)
+  authorized.headers.set('Authorization', `Bearer ${token}`)
+  return authorized
+}
 
 /**
- * `POST /me` with the token right after an interactive sign-in, creating or returning the account.
- * Throws on any failure; the global 401 handler skips it, so the sign-in reports why it stopped.
+ * Every request carries the signed-in student's access token. `/auth/*` never does (it is how a
+ * session starts or ends), nor a request that sets its own `Authorization`. A 401 is retried once
+ * with a refreshed token; if that is refused too, the session is over. A 404 from `GET /me…`
+ * means the account is gone.
  */
-export async function createAccount(accessToken: string): Promise<void> {
-  const result = await api.POST('/me', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-  unwrap(result)
+async function authorizedFetch(request: Request): Promise<Response> {
+  const path = apiPath(request)
+  if (path.startsWith('/auth/')) return send(request, authTimeoutMs)
+  if (!session || request.headers.has('Authorization')) return send(request)
+
+  const token = await session.accessToken()
+  if (!token) return send(request)
+
+  // The body can be read only once: keep a copy for the retry.
+  const retry = request.clone()
+  let response = await send(withBearer(request, token))
+
+  if (refusesBearer(response)) {
+    const fresh = await session.replaceRejected(token)
+    if (!fresh) return response
+    response = await send(withBearer(retry, fresh))
+    if (refusesBearer(response)) session.sessionRefused()
+  }
+
+  if (response.status === 404 && request.method === 'GET' && /^\/me(\/|$)/.test(path)) {
+    session.accountGone()
+  }
+  return response
 }
+
+export const api = createClient<paths>({ baseUrl: apiBase, fetch: authorizedFetch })
 
 /** The API answered, but not with a 2xx. `body` is what it sent back (parsed JSON, or text). */
 export class ApiError extends Error {
   readonly status: number
   readonly body: unknown
+  /** Seconds from the `Retry-After` header (a 429), or null. */
+  readonly retryAfterSeconds: number | null
 
-  constructor(status: number, body: unknown) {
+  constructor(status: number, body: unknown, retryAfterSeconds: number | null = null) {
     super(`The API answered HTTP ${status}`)
     this.name = 'ApiError'
     this.status = status
     this.body = body
+    this.retryAfterSeconds = retryAfterSeconds
+  }
+
+  /** The ProblemDetails `type` the API sent (a slug like `invalid-code`), if any. */
+  get type(): string | null {
+    const body = this.body
+    if (typeof body === 'object' && body !== null && 'type' in body) {
+      return typeof body.type === 'string' ? body.type : null
+    }
+    return null
   }
 }
 
@@ -97,6 +141,14 @@ export class ApiError extends Error {
  * `response.ok`, so a 204 (no content) is a success with `undefined` data.
  */
 export function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T {
-  if (!result.response.ok) throw new ApiError(result.response.status, result.error)
+  const { response } = result
+  if (!response.ok) {
+    const retryAfter = Number(response.headers.get('Retry-After'))
+    throw new ApiError(
+      response.status,
+      result.error,
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : null,
+    )
+  }
   return result.data as T
 }

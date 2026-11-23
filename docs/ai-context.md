@@ -21,18 +21,19 @@ plain words. Keep each change small enough to read and test in a few minutes.
 
 ## Structure
 
-| Path                 | What                                                                                                  |
-| -------------------- | ----------------------------------------------------------------------------------------------------- |
-| `src/main.tsx`       | Routes: `/` landing, `/app` web app, `/privacy`, `/account-deletion`, `*` not found                   |
-| `src/pages/`         | One component per page, `<Name>Page.tsx`                                                              |
-| `src/components/`    | Shared components                                                                                     |
-| `src/Layout.tsx`     | Header/footer frame around every page                                                                 |
-| `src/index.css`      | Tailwind import, page-wide styles, and the import of the generated tokens                             |
-| `design/tokens.json` | The design tokens, the one source for web and mobile (`docs/design-system.md`)                        |
-| `src/design/`        | `tokens.css`: Tailwind `@theme` generated from `tokens.json` (`bun run design:tokens`), never edited  |
-| `src/i18n/`          | `en.json` / `ro.json` (all user-facing text, same keys), setup, `format.ts` (dates)                   |
-| `src/api/`           | `schema.d.ts` (generated from the API contract, never edited), `client.ts` (`api`), one hook per call |
-| `public/_redirects`  | Cloudflare Pages fallback so client routes work on reload                                             |
+| Path                 | What                                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `src/App.tsx`        | Routes: `/` landing, `/app`, `/timetable`, `/deadlines`, `/account`, `/sign-in`, `/privacy`, `/account-deletion`, `*` not found |
+| `src/auth/`          | Sign-in (email code, Continue with UPT) and the session: `session.ts` keeps our tokens; `src/api/client.ts` sends them          |
+| `src/pages/`         | One component per page, `<Name>Page.tsx`                                                                                        |
+| `src/components/`    | Shared components                                                                                                               |
+| `src/Layout.tsx`     | Header/footer frame around every page                                                                                           |
+| `src/index.css`      | Tailwind import, page-wide styles, and the import of the generated tokens                                                       |
+| `design/tokens.json` | The design tokens, the one source for web and mobile (`docs/design-system.md`)                                                  |
+| `src/design/`        | `tokens.css`: Tailwind `@theme` generated from `tokens.json` (`bun run design:tokens`), never edited                            |
+| `src/i18n/`          | `en.json` / `ro.json` (all user-facing text, same keys), setup, `format.ts` (dates)                                             |
+| `src/api/`           | `schema.d.ts` (generated from the API contract, never edited), `client.ts` (`api`), one hook per call                           |
+| `public/_redirects`  | Cloudflare Pages fallback so client routes work on reload                                                                       |
 
 ## Rules for your answers
 

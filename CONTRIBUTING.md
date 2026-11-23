@@ -47,7 +47,7 @@ One issue = one PR = one thing. If it grows past roughly 300 changed lines, spli
 
 | Path                 | What goes there                                                                                       |
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
-| `src/main.tsx`       | The routes (React Router). A new page is added here                                                   |
+| `src/App.tsx`        | The routes (React Router). A new page is added here                                                   |
 | `src/pages/`         | One file per page, named `<Name>Page.tsx`                                                             |
 | `src/components/`    | Pieces used by more than one page                                                                     |
 | `src/Layout.tsx`     | The frame around every page (header, footer)                                                          |

@@ -14,24 +14,106 @@
   },
   "nav": {
     "dashboard": "Panou",
-    "timetable": "Orar"
+    "timetable": "Orar",
+    "deadlines": "Termene",
+    "main": "Principal",
+    "account": "Cont",
+    "accountMenu": "Meniul contului"
   },
   "auth": {
     "signIn": "Autentificare",
-    "signInWithMicrosoft": "Conectare cu Microsoft",
     "signOut": "Deconectare",
-    "signingIn": "Se conectează…",
-    "signingOut": "Se deconectează…",
     "checkingSession": "Se verifică sesiunea…",
-    "signInRequiredTitle": "Autentificare necesară",
-    "signInRequiredDesc": "Te rugăm să te conectezi cu contul instituțional Microsoft (@student.upt.ro) pentru a accesa orarul și panoul de student.",
-    "studentAccountOnly": "Doar pentru conturi de student UPT",
-    "signedInAs": "Conectat ca",
-    "authError": "Eroare de autentificare",
-    "sessionExpired": "Sesiunea ta a expirat. Te rugăm să te reconectezi.",
-    "dismissError": "Închide eroarea",
-    "accountGone": "Contul tău a fost șters, așa că ai fost deconectat.",
-    "setupFailed": "Conectarea nu s-a încheiat: serverul CampusPulse nu ți-a putut pregăti contul. Încearcă din nou."
+    "unreachableTitle": "CampusPulse nu răspunde",
+    "unreachableBody": "Ești încă conectat, dar serverul nu răspunde. Verifică-ți conexiunea și încearcă din nou.",
+    "retry": "Încearcă din nou"
+  },
+  "signIn": {
+    "title": "Conectează-te la CampusPulse",
+    "subtitle": "Ești nou? Contul se creează când te conectezi.",
+    "continueWithUpt": "Continuă cu UPT",
+    "uptWhy": "Odată cu el vin termenele și Campus Virtual.",
+    "uptWaiting": "Termină conectarea în fereastra Microsoft. Ai închis-o? Apasă din nou Continuă cu UPT.",
+    "useEmail": "Sau folosește adresa de email",
+    "emailTitle": "Conectează-te cu emailul",
+    "dismiss": "Închide",
+    "reasons": {
+      "sessionExpired": "Sesiunea a expirat. Conectează-te din nou.",
+      "accountGone": "Contul tău a fost șters, așa că ai fost deconectat.",
+      "accountDeleted": "Contul tău a fost șters."
+    },
+    "problems": {
+      "identity-in-use": "Acest cont UPT aparține deja altui cont CampusPulse. Ca să-l folosești, deconectează-te și continuă cu UPT.",
+      "already-linked": "Contul tău este deja asociat cu alt cont UPT. Elimină mai întâi acea asociere.",
+      "microsoft-token-invalid": "Microsoft te-a conectat, dar nu cu un cont UPT pe care aplicația îl acceptă. Folosește contul tău de student UPT.",
+      "microsoft-unavailable": "Conectarea cu UPT nu funcționează acum. Încearcă mai târziu sau folosește emailul.",
+      "sign-in-unavailable": "Conectarea nu funcționează acum pe server. Încearcă mai târziu.",
+      "rate-limited": "Prea multe încercări. Așteaptă puțin și încearcă din nou.",
+      "unreachable": "CampusPulse nu poate fi contactat. Verifică-ți conexiunea și încearcă din nou.",
+      "microsoft-timeout": "Conectarea Microsoft a durat prea mult. Încearcă din nou.",
+      "microsoft-error": "Microsoft nu te-a putut conecta.",
+      "unknown": "Ceva n-a mers. Încearcă din nou."
+    },
+    "email": {
+      "label": "Email",
+      "send": "Trimite codul",
+      "codeSentTo": "Introdu codul de 6 cifre trimis la <email>{{email}}</email>.",
+      "codeLabel": "Cod",
+      "codeHint": "Este valabil până la {{time}}. Nu-l găsești? Uită-te și în spam.",
+      "verify": "Conectează-te",
+      "resend": "Trimite un cod nou",
+      "resendIn": "Trimite un cod nou în {{seconds}} s",
+      "resent": "Ți-am trimis un cod nou. Doar cel mai recent funcționează.",
+      "differentEmail": "Folosește altă adresă",
+      "errors": {
+        "invalidEmail": "Introdu o adresă de email, de forma nume@exemplu.ro.",
+        "emailRequired": "Introdu adresa ta de email.",
+        "invalidCode": "Codul nu este corect sau a expirat. Verifică cel mai recent email.",
+        "codeBurned": "Prea multe încercări greșite: codul nu mai funcționează. Cere unul nou.",
+        "tooManyCodes": "Prea multe coduri pentru această adresă. Încearcă mai târziu.",
+        "tooManyCodesUntil": "Prea multe coduri pentru această adresă. Încearcă din nou după {{time}}.",
+        "rateLimitedUntil": "Prea multe încercări din această rețea. Încearcă din nou după {{time}}.",
+        "emailUnavailable": "Nu am putut trimite emailul acum. Încearcă din nou sau continuă cu UPT.",
+        "expired": "Codul a expirat. Cere unul nou."
+      }
+    }
+  },
+  "account": {
+    "title": "Cont",
+    "methodsTitle": "Cum te conectezi",
+    "email": {
+      "label": "Email",
+      "none": "Niciunul: te conectezi cu UPT."
+    },
+    "upt": {
+      "label": "Contul UPT",
+      "linkedNoEmail": "Asociat",
+      "linkedOn": "Asociat pe {{date}}",
+      "notLinked": "Neasociat",
+      "why": "Asociază-l ca să primești termenele și Campus Virtual.",
+      "waiting": "Termină în fereastra Microsoft. Ai închis-o? Apasă din nou Asociază contul UPT.",
+      "link": "Asociază contul UPT",
+      "unlink": "Elimină asocierea",
+      "lastMethod": "UPT este singurul mod în care te poți conecta, așa că asocierea nu poate fi eliminată.",
+      "unlinkFailed": "Asocierea cu contul UPT nu a putut fi eliminată. Încearcă din nou.",
+      "linked": "Contul tău UPT este asociat.",
+      "unlinked": "Asocierea cu contul UPT a fost eliminată.",
+      "unlinkTitle": "Elimini asocierea cu contul UPT?",
+      "unlinkBody": "De acum te vei conecta cu {{email}}. Termenele și setările rămân.",
+      "cancel": "Anulează",
+      "unlinkConfirm": "Elimină asocierea"
+    }
+  },
+  "deleteAccount": {
+    "title": "Ștergerea contului",
+    "body": "Șterge contul și tot ce conține, pe toate dispozitivele: modurile de conectare, termenele, setările și mementourile. Ștergerea nu poate fi anulată.",
+    "button": "Șterge contul",
+    "confirmTitle": "Îți ștergi contul?",
+    "confirmBody": "Tot ce conține se șterge definitiv, iar toate dispozitivele sunt deconectate.",
+    "typeToConfirm": "Scrie <value>{{value}}</value> ca să confirmi",
+    "failed": "Contul nu a putut fi șters. Încearcă din nou.",
+    "cancel": "Anulează",
+    "confirm": "Șterge contul"
   },
   "draftNotice": "Ciornă: această pagină este provizorie și nu conține textul final.",
   "home": {
@@ -93,6 +175,11 @@
     "title": "Panoul tău de student",
     "greetingWithName": "Bine ai revenit, {{name}}",
     "subtitle": "Cursurile, termenele și informațiile din campus, toate într-un singur loc.",
+    "linkUpt": {
+      "message": "Asociază-ți contul UPT ca să-ți primești termenele automat.",
+      "action": "Asociază UPT",
+      "dismiss": "Ascunde"
+    },
     "body": "Aici va fi versiunea web a CampusPulse. Deocamdată nu este nimic de văzut.",
     "sampleClasses": {
       "msa": "Sisteme și Aplicații Mobile",
@@ -125,12 +212,12 @@
     },
     "comingUp": {
       "title": "Urmează",
-      "exampleDeadline": "Exemplu termen",
-      "msaMilestone": "Etapă proiect SAM",
-      "msaNotice": "Termenele reale pentru teme nu sunt încă conectate.",
       "exams": "Examene",
       "examSchedule": "Programarea examenelor",
-      "examNotice": "Datele examenelor vor apărea aici când vor fi publicate."
+      "examNotice": "Datele examenelor vor apărea aici când vor fi publicate.",
+      "deadlines": "Termenele tale",
+      "noDeadlines": "Nimic de predat. Adaugă un termen ca să-l urmărești.",
+      "allDeadlines": "Toate termenele"
     },
     "studySpaces": {
       "title": "Spații de studiu",
@@ -178,13 +265,84 @@
     "noClassesSubtitle": "Bucură-te de ziua liberă!",
     "demoNotice": "Orar demonstrativ: doar cursuri de probă. Orele și sălile oficiale nu sunt încă sincronizate."
   },
+  "deadlines": {
+    "title": "Termene",
+    "subtitle": "Termenele tale, în ora Timișoarei.",
+    "add": "Adaugă un termen",
+    "campusVirtualLater": "Termenele din Campus Virtual vor apărea și ele aici când Campus Virtual ajunge pe web.",
+    "linkForCampusVirtual": "Asociază-ți contul UPT și, când Campus Virtual ajunge pe web, termenele se vor completa singure.",
+    "linkUpt": "Asociază UPT",
+    "loading": "Se încarcă termenele…",
+    "retry": "Încearcă din nou",
+    "loadFailed": "Termenele nu au putut fi încărcate.",
+    "emptyTitle": "Niciun termen încă",
+    "emptyBody": "Adaugă-le pe cele pe care vrei să le urmărești: un referat de laborator, o etapă de proiect, un examen.",
+    "allDone": "Ai terminat tot.",
+    "groups": {
+      "overdue": "Depășite",
+      "today": "Azi",
+      "thisWeek": "Săptămâna aceasta",
+      "later": "Mai târziu",
+      "done": "Terminate"
+    },
+    "dueToday": "Azi, {{time}}",
+    "dueTomorrow": "Mâine, {{time}}",
+    "dueYesterday": "Ieri, {{time}}",
+    "dueOn": "{{day}}, {{time}}",
+    "saveFailed": "Nu s-a putut salva. Încearcă din nou.",
+    "doneFailed": "Modificarea nu s-a putut salva, așa că a fost anulată. Încearcă din nou.",
+    "edit": "Editează",
+    "editNamed": "Editează {{title}}",
+    "deleteNamed": "Șterge {{title}}",
+    "form": {
+      "addTitle": "Adaugă un termen",
+      "editTitle": "Editează termenul",
+      "title": "Titlu",
+      "course": "Materie",
+      "optional": "Opțional",
+      "due": "Termen",
+      "date": "Data",
+      "time": "Ora",
+      "campusTime": "Ora Timișoarei.",
+      "notes": "Note",
+      "titleRequired": "Dă-i un titlu.",
+      "dueRequired": "Alege data și ora termenului.",
+      "limit": "Ai 500 de termene, cât poate păstra cel mult un cont. Șterge mai întâi câteva terminate.",
+      "cancel": "Anulează",
+      "save": "Salvează",
+      "addSubmit": "Adaugă termenul"
+    },
+    "delete": {
+      "title": "Ștergi acest termen?",
+      "body": "„{{title}}” va fi șters.",
+      "failed": "Nu s-a putut șterge. Încearcă din nou.",
+      "confirm": "Șterge"
+    }
+  },
   "privacy": {
     "title": "Politica de confidențialitate",
     "body": "Această pagină va descrie ce date colectează CampusPulse, de ce, unde sunt stocate, cât timp sunt păstrate și cum ne poți contacta. Google Play o cere înainte ca aplicația să poată fi publicată."
   },
   "accountDeletion": {
     "title": "Șterge-ți contul",
-    "body": "Această pagină va explica cum îți poți șterge contul CampusPulse și ce date sunt eliminate. Google Play cere o pagină web pentru asta, separată de opțiunea din aplicație."
+    "intro": "Îți poți șterge oricând contul CampusPulse, aici sau din aplicație. Ștergerea nu poate fi anulată.",
+    "done": "Contul tău și tot ce conținea au fost șterse, iar tu ai fost deconectat.",
+    "whatTitle": "Ce se șterge",
+    "what": {
+      "account": "Contul tău: adresa de email și numele",
+      "methods": "Contul UPT asociat",
+      "sessions": "Toate sesiunile, deci toate dispozitivele sunt deconectate",
+      "deadlines": "Termenele tale",
+      "settings": "Grupa, materiile și setările mementourilor pentru ore",
+      "devices": "Telefoanele înregistrate pentru mementourile orelor"
+    },
+    "campusVirtual": "Conexiunea cu Campus Virtual nu ajunge niciodată la CampusPulse: rămâne doar pe telefonul tău și dispare când o deconectezi sau ștergi aplicația.",
+    "keptTitle": "Ce rămâne",
+    "kept": "Doar numărul conturilor șterse în fiecare zi, fără nimic care să te identifice. Datele șterse rămân doar în copiile de siguranță ale întregului sistem, nu sunt folosite niciodată pentru nimic și dispar din ele după cel mult aproximativ un an.",
+    "howTitle": "Cum îl ștergi",
+    "signedInAs": "Ești conectat ca <name>{{name}}</name>.",
+    "signInFirst": "Conectează-te ca să-ți ștergi contul de aici.",
+    "contact": "Nu te poți conecta? Scrie-ne la <mail>{{email}}</mail> de pe adresa contului și îl ștergem noi."
   },
   "notFound": {
     "title": "Pagina nu a fost găsită",
