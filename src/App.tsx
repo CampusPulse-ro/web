@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './index.css'
@@ -17,12 +17,22 @@ import { TimetablePage } from './pages/TimetablePage'
 
 /** Renders the app (started by `main.tsx` when the URL isn't a sign-in answer). */
 export function renderApp() {
+  // UI prototype A ("Departures"): its own full-screen shell, outside the site's Layout.
+  const Prototype = lazy(() => import('./prototype/departures'))
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <BrowserRouter>
             <Routes>
+              <Route
+                path="prototype/*"
+                element={
+                  <Suspense fallback={null}>
+                    <Prototype />
+                  </Suspense>
+                }
+              />
               <Route element={<Layout />}>
                 <Route index element={<HomePage />} />
                 <Route
