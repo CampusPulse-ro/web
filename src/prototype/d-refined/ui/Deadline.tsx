@@ -114,7 +114,7 @@ export function DueRow({
  * in an assignment, start a quiz, reply in a forum, tick off your own deadline. Opening the
  * website is the secondary action.
  */
-export function DueDetail({ d }: { d: DueItem }) {
+export function DueDetail({ d, wide = false }: { d: DueItem; wide?: boolean }) {
   const { data, now } = useProto()
   const urgency = urgencyOf(d, now)
   const cut = cutoffOf(d, now)
@@ -125,78 +125,84 @@ export function DueDetail({ d }: { d: DueItem }) {
   const left = minutesToDue(d, now)
 
   return (
-    <div>
-      <div className="flex items-center gap-3">
-        <DueAvatar d={d} size={52} />
-        <div className="min-w-0">
-          <p className="t-body-m c-muted truncate">{d.course ?? 'Your own deadline'}</p>
-          <p className="t-label-m c-muted flex items-center gap-1">
-            <Icon name={DUE_ICON[d.kind]} size={14} />
-            {KIND_TEXT[d.kind]}
-          </p>
+    <div
+      className={wide ? 'grid gap-10' : ''}
+      style={wide ? { gridTemplateColumns: 'minmax(0, 1fr) 300px' } : undefined}
+    >
+      <div className="min-w-0">
+        <div className="flex items-center gap-3">
+          <DueAvatar d={d} size={52} />
+          <div className="min-w-0">
+            <p className="t-body-m c-muted truncate">{d.course ?? 'Your own deadline'}</p>
+            <p className="t-label-m c-muted flex items-center gap-1">
+              <Icon name={DUE_ICON[d.kind]} size={14} />
+              {KIND_TEXT[d.kind]}
+            </p>
+          </div>
         </div>
+        <h2 className="t-headline-s mt-3">{d.name}</h2>
+        <p
+          className={`t-title-m mt-1 ${urgency === 'overdue' ? 'c-error' : urgency === 'done' ? 'c-muted' : 'c-primary'}`}
+        >
+          {urgency === 'done'
+            ? statusLine(d)
+            : left < 0
+              ? `Due ${relativeDue(left).replace(' late', ' ago')}${cut === 'late-ok' ? ', late work still accepted' : cut === 'closed' ? ', closed' : ''}`
+              : `Due ${relativeDue(left)}`}
+        </p>
+
+        {d.kind === 'assign' && <AssignmentActions d={d} closed={cut === 'closed'} />}
+        {d.kind === 'quiz' && <QuizActions d={d} closed={cut === 'closed'} />}
+        {d.kind === 'forum' && <ForumActions d={d} />}
+        {d.kind === 'manual' && <ManualActions d={d} />}
       </div>
-      <h2 className="t-headline-s mt-3">{d.name}</h2>
-      <p
-        className={`t-title-m mt-1 ${urgency === 'overdue' ? 'c-error' : urgency === 'done' ? 'c-muted' : 'c-primary'}`}
-      >
-        {urgency === 'done'
-          ? statusLine(d)
-          : left < 0
-            ? `Due ${relativeDue(left).replace(' late', ' ago')}${cut === 'late-ok' ? ', late work still accepted' : cut === 'closed' ? ', closed' : ''}`
-            : `Due ${relativeDue(left)}`}
-      </p>
-
-      {d.kind === 'assign' && <AssignmentActions d={d} closed={cut === 'closed'} />}
-      {d.kind === 'quiz' && <QuizActions d={d} closed={cut === 'closed'} />}
-      {d.kind === 'forum' && <ForumActions d={d} />}
-      {d.kind === 'manual' && <ManualActions d={d} />}
-
-      <h3 className="cx-section-title">When</h3>
-      <ul className="cx-list">
-        <li className="cx-item">
-          <span className="cx-item-lead">
-            <Icon name="schedule" />
-          </span>
-          <span className="cx-item-body">
-            <span className="t-body-l tnum">
-              {longDate(due.date)}, {hhmm(due.minutes)}
-            </span>
-            <span className="t-body-m c-muted">{d.kind === 'quiz' ? 'Closes' : 'Due'}</span>
-          </span>
-        </li>
-        {d.cutoffAt && (
+      <div className={wide ? 'pt-14' : ''}>
+        <h3 className="cx-section-title">When</h3>
+        <ul className="cx-list">
           <li className="cx-item">
             <span className="cx-item-lead">
-              <Icon name="lock" />
+              <Icon name="schedule" />
             </span>
             <span className="cx-item-body">
               <span className="t-body-l tnum">
-                {longDate(at(d.cutoffAt).date)}, {hhmm(at(d.cutoffAt).minutes)}
+                {longDate(due.date)}, {hhmm(due.minutes)}
               </span>
-              <span className="t-body-m c-muted">
-                {cut === 'late-ok'
-                  ? 'Cut-off: late work is still accepted until then'
-                  : cut === 'closed'
-                    ? 'Cut-off passed: Campus Virtual takes nothing more'
-                    : 'Cut-off: nothing can be handed in after it'}
-              </span>
+              <span className="t-body-m c-muted">{d.kind === 'quiz' ? 'Closes' : 'Due'}</span>
             </span>
           </li>
-        )}
-      </ul>
+          {d.cutoffAt && (
+            <li className="cx-item">
+              <span className="cx-item-lead">
+                <Icon name="lock" />
+              </span>
+              <span className="cx-item-body">
+                <span className="t-body-l tnum">
+                  {longDate(at(d.cutoffAt).date)}, {hhmm(at(d.cutoffAt).minutes)}
+                </span>
+                <span className="t-body-m c-muted">
+                  {cut === 'late-ok'
+                    ? 'Cut-off: late work is still accepted until then'
+                    : cut === 'closed'
+                      ? 'Cut-off passed: Campus Virtual takes nothing more'
+                      : 'Cut-off: nothing can be handed in after it'}
+                </span>
+              </span>
+            </li>
+          )}
+        </ul>
 
-      {d.kind !== 'manual' && courseUrl && (
-        <a
-          href={courseUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="cx-btn cx-btn--text cx-state mt-4 -ml-3"
-        >
-          <Icon name="openInNew" size={18} />
-          Open on the Campus Virtual website
-        </a>
-      )}
+        {d.kind !== 'manual' && courseUrl && (
+          <a
+            href={courseUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="cx-btn cx-btn--text cx-state mt-4 -ml-3"
+          >
+            <Icon name="openInNew" size={18} />
+            Open on the Campus Virtual website
+          </a>
+        )}
+      </div>
     </div>
   )
 }
@@ -360,7 +366,7 @@ function AssignmentActions({ d, closed }: { d: DueItem; closed: boolean }) {
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            className="cx-btn cx-btn--tonal cx-state"
+            className={`cx-btn ${files.length ? 'cx-btn--tonal' : 'cx-btn--filled'} cx-state`}
             onClick={() => input.current?.click()}
             disabled={files.length >= a.maxFiles}
           >

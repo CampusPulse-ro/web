@@ -23,7 +23,7 @@ import { AccountButton, PaneLayout } from './common'
 
 export function WeekScreen() {
   const { data, now } = useProto()
-  const { compact } = useWindowClass()
+  const { compact, expanded } = useWindowClass()
   const [weekParam, setWeekParam] = useParam('week')
   const [viewParam, setView] = useParam('view')
   const [, openClass] = useSheetParam('class')
@@ -118,8 +118,8 @@ export function WeekScreen() {
             }
           />
           <div
-            className={compact ? 'px-3' : 'grid gap-8 px-4'}
-            style={compact ? undefined : { gridTemplateColumns: 'minmax(0, 1fr) 320px' }}
+            className={!expanded ? 'px-3' : 'grid gap-8 px-4'}
+            style={!expanded ? undefined : { gridTemplateColumns: 'minmax(0, 1fr) 320px' }}
           >
             <div className="min-w-0 overflow-x-clip">
               <AnimatePresence mode="popLayout" initial={false} custom={dir}>
@@ -155,7 +155,7 @@ export function WeekScreen() {
                   />
                 </m.div>
               </AnimatePresence>
-              {compact && (
+              {!expanded && (
                 <>
                   <h2 className="cx-section-title">Subjects and kinds</h2>
                   <SubjectLegend dates={dates} />
@@ -166,7 +166,7 @@ export function WeekScreen() {
                 {compact && ' Swipe sideways to change the week.'}
               </p>
             </div>
-            {!compact && (
+            {expanded && (
               <aside className="flex flex-col gap-2">
                 <h2 className="cx-section-title">This week</h2>
                 <WeekSummary dates={dates} />

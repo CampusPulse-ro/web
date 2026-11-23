@@ -193,6 +193,7 @@ function DeadlinesList({ selected }: { selected: string | null }) {
 
 function DetailPane({ d, back }: { d: DueItem; back: boolean }) {
   const navigate = useNavigate()
+  const { expanded } = useWindowClass()
   return (
     <div className="cx-pane" style={{ paddingBottom: 32 }}>
       <TopAppBar
@@ -211,8 +212,8 @@ function DetailPane({ d, back }: { d: DueItem; back: boolean }) {
           ) : undefined
         }
       />
-      <div className="mx-auto max-w-[680px] px-4 pt-2">
-        <DueDetail d={d} />
+      <div className={back ? 'px-4 pt-2' : 'max-w-[1040px] px-8 pt-2'}>
+        <DueDetail d={d} wide={!back && expanded} />
       </div>
     </div>
   )
