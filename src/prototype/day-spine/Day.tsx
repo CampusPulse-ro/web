@@ -31,7 +31,9 @@ import {
   blockState,
   phaseOf,
   relativeDay,
+  statusText,
   urgentDeadlines,
+  onSpine,
   weekdayName,
   type ClassBlock,
   type Elapsed,
@@ -399,11 +401,18 @@ export function DayTimeline({
   scale: number
   nowRef?: Ref<HTMLDivElement>
 }) {
-  const { data, now, start } = useProto()
+  const { data, now, start, subjects } = useProto()
+  const [, go] = useNav()
   const classes = classesOn(data.timetable, date)
   const blocks = blocksOf(classes)
   const elapsed = elapsedFor(date, now)
-  const range = dayRange(blocks, elapsed)
+  const base = dayRange(blocks, elapsed)
+  // Deadlines with a time on this day sit on the spine too, where no class covers them.
+  const dues = onSpine(deadlinesOf(data.assignments, now), blocks, base[0], date)
+  const range: [number, number] = [
+    base[0],
+    Math.max(base[1], ...dues.map((d) => Math.ceil((d.minute + 40) / 60) * 60)),
+  ]
   const gaps = gapsOf(blocks)
   const nowMin = typeof elapsed === 'number' ? elapsed : null
   const phase = nowMin !== null ? phaseOf(blocks, nowMin) : null
@@ -451,6 +460,40 @@ export function DayTimeline({
                 next={next.occ}
               />
             ) : null
+          })}
+          {dues.map((d) => {
+            const late = d.urgency === 'overdue'
+            const color = subjects.byShort.get(d.a.shortName)?.color ?? 'var(--b-sub-neutral)'
+            return (
+              <button
+                key={d.a.id}
+                type="button"
+                onClick={() => go({ due: String(d.a.id), cls: null })}
+                className="group absolute right-2 flex items-start text-left"
+                style={vars(
+                  { '--sub': color },
+                  { top: y(d.minute) - 9, height: 44, left: SPINE_X - 10 },
+                )}
+              >
+                <span
+                  aria-hidden
+                  className="b-swatch absolute size-2.5 rotate-45 rounded-xs"
+                  style={{ left: 5, top: 4, boxShadow: '0 0 0 3px var(--color-page)' }}
+                />
+                <span
+                  className="flex min-w-0 flex-col pr-2 group-hover:underline"
+                  style={{ paddingLeft: TEXT_X - SPINE_X + 10 }}
+                >
+                  <span className={`text-label ${late ? 'text-danger' : 'text-ink'}`}>
+                    {late ? 'Was due' : 'Due'} <span className="b-num">{hhmm(d.minute)}</span>
+                    <span className="ml-2 font-normal text-ink-soft">{d.a.shortName}</span>
+                  </span>
+                  <span className="truncate text-caption text-ink-muted">
+                    {d.a.name}, {statusText(d.a, now.date).toLowerCase()}
+                  </span>
+                </span>
+              </button>
+            )
           })}
           {phase?.kind === 'after' && nowMin !== null ? (
             <div
@@ -639,7 +682,13 @@ export function DayBody({
   const lines = headline(classes, date, now.date, now.minutes, reason)
   const after = over ? nextLine(nextClassAfter(data.timetable, date, now.minutes), now.date) : null
   if (after) lines.push(after)
-  const due = isToday ? urgentDeadlines(deadlinesOf(data.assignments, now)) : []
+  const all = deadlinesOf(data.assignments, now)
+  const shown = new Set(
+    blocks.length
+      ? onSpine(all, blocks, dayRange(blocks, elapsedFor(date, now))[0], date).map((d) => d.a.id)
+      : [],
+  )
+  const due = isToday ? urgentDeadlines(all.filter((d) => !shown.has(d.a.id))) : []
   const inRange = date >= data.timetable.from && date <= data.timetable.to
 
   return (

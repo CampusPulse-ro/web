@@ -120,17 +120,14 @@ function DayPills({ date, onPick }: { date: string; onPick: (d: string) => void 
   )
 }
 
-function NoRoomData({ date, onPick }: { date: string; onPick: (d: string) => void }) {
+function NoRoomData({ date }: { date: string }) {
   return (
     <div className="mt-6">
       <p className="text-body text-ink">No room timetable for {longDate(date)}.</p>
       <p className="mt-1 text-body-small text-ink-muted">
-        This demo has every room&rsquo;s timetable for Monday 23 to Friday 27 November. Pick one of
-        those days:
+        This demo has every room&rsquo;s timetable for Monday 23 to Friday 27 November: pick one of
+        those days above.
       </p>
-      <div className="mt-3">
-        <DayPills date="" onPick={onPick} />
-      </div>
     </div>
   )
 }
@@ -262,7 +259,7 @@ export function RoomsList({ selected }: { selected: string | null }) {
 
       {!hasData ? (
         <div className="px-1">
-          <NoRoomData date={date} onPick={(d) => go({ rday: d }, { replace: true })} />
+          <NoRoomData date={date} />
         </div>
       ) : (
         <>
@@ -536,7 +533,7 @@ export function RoomDay({ code, onBack }: { code: string; onBack?: () => void })
 
       {!occs ? (
         <div className="px-1">
-          <NoRoomData date={date} onPick={(d) => go({ rday: d }, { replace: true })} />
+          <NoRoomData date={date} />
         </div>
       ) : (
         <div className="mt-6">

@@ -55,8 +55,8 @@ export function ProfileScreen() {
       <Group title="Timetable">
         <Item
           label="Study group"
-          value={g ? `${g.programmeName}` : 'Not set'}
-          about="Change it in the timetable setup"
+          about={g ? `${g.programmeName}, year ${g.year}` : undefined}
+          value={g ? `Group ${g.label}` : 'Not set'}
         />
         <Item label="Optional subjects" value={`${optional.size} picked`} />
       </Group>

@@ -293,7 +293,10 @@ function ClassDetail({ occ }: { occ: Occurrence }) {
 
       <div className="mt-5">
         <p className="text-label text-ink">{when}</p>
-        <div aria-hidden className="relative mt-2 h-1.5 overflow-hidden rounded-full bg-ink/10">
+        <div
+          aria-hidden
+          className={`relative mt-2 h-1.5 overflow-hidden rounded-full bg-ink/10 ${progress > 0 ? '' : 'hidden'}`}
+        >
           <div
             className="b-swatch absolute inset-y-0 left-0 rounded-full"
             style={{

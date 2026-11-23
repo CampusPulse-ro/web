@@ -537,3 +537,20 @@ export function whenShort(date: string, minute: number, today: string): string {
   if (days === 1) return `tomorrow ${hhmm(minute)}`
   return dueExact(date, minute, today)
 }
+
+/** Deadlines with a time on this day that the day's spine shows: not done, in the day, not under a class. */
+export function onSpine(
+  all: Deadline[],
+  blocks: ClassBlock[],
+  from: number,
+  date: string,
+): Deadline[] {
+  return all.filter(
+    (d) =>
+      d.date === date &&
+      d.urgency !== 'done' &&
+      d.minute >= from &&
+      d.minute <= 21 * 60 &&
+      !blocks.some((b) => d.minute > b.start && d.minute < b.end),
+  )
+}

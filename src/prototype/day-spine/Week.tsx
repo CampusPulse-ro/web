@@ -226,7 +226,7 @@ function WeekBlock({
           layoutId={lid}
           data-past={past}
           className="b-block absolute inset-0"
-          style={{ borderRadius: 10 }}
+          style={{ borderRadius: compact ? 11 : 14 }}
           transition={{ type: 'spring', duration: 0.42, bounce: 0.1 }}
         />
       ) : null}
@@ -236,8 +236,8 @@ function WeekBlock({
           className="b-block-fill b-glide-h absolute inset-x-0 top-0"
           style={{
             height: Math.max(0, (elapsed - block.start) * scale),
-            borderTopLeftRadius: 10,
-            borderTopRightRadius: 10,
+            borderTopLeftRadius: compact ? 11 : 14,
+            borderTopRightRadius: compact ? 11 : 14,
           }}
         />
       ) : null}
