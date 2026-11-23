@@ -353,15 +353,17 @@ function GapNote({
               {rooms.length} {rooms.length === 1 ? 'room' : 'rooms'} free in the {groupLabel(group)}{' '}
               until <span className="b-num">{hhmm(gap.end)}</span>
             </p>
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="-my-1.5 flex flex-wrap items-center gap-x-1.5">
               {rooms.slice(0, 3).map((c) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => go({ view: 'room', room: c, rday: date })}
-                  className="b-num min-h-8 rounded-full bg-raised px-3 text-label text-ink transition-colors hover:bg-line"
+                  className="group/chip flex min-h-12 items-center"
                 >
-                  {c}
+                  <span className="b-num rounded-full bg-raised px-3 py-1.5 text-label text-ink transition-colors group-hover/chip:bg-line">
+                    {c}
+                  </span>
                 </button>
               ))}
               {rooms.length > 3 ? (
@@ -377,7 +379,7 @@ function GapNote({
                       rday: date,
                     })
                   }
-                  className="min-h-8 rounded-full px-2 text-label text-accent hover:underline"
+                  className="min-h-12 rounded-full px-2 text-label text-accent hover:underline"
                 >
                   All {rooms.length}
                 </button>
@@ -495,25 +497,6 @@ export function DayTimeline({
               </button>
             )
           })}
-          {phase?.kind === 'after' && nowMin !== null ? (
-            <div
-              className="absolute right-3"
-              style={{
-                left: TEXT_X,
-                top:
-                  y(phase.last.end) +
-                  placeAround(
-                    (range[1] - phase.last.end) * scale,
-                    (nowMin - phase.last.end) * scale,
-                    22,
-                  ),
-              }}
-            >
-              <p className="text-body-small text-ink-muted">
-                Free since <span className="b-num">{hhmm(phase.last.end)}</span>
-              </p>
-            </div>
-          ) : null}
         </>
       )}
     </Spine>

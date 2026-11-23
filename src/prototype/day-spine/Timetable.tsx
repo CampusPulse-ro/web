@@ -162,7 +162,7 @@ function NavButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="grid size-11 place-items-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink disabled:opacity-30"
+      className="grid size-12 place-items-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink disabled:opacity-30"
     >
       {dirn < 0 ? <IconBack width={20} height={20} /> : <IconNext width={20} height={20} />}
     </button>
@@ -197,7 +197,7 @@ export function TodayScreen() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="mt-1 min-h-10 rounded-full bg-raised px-4 text-label text-ink hover:bg-line"
+                className="min-h-12 rounded-full bg-raised px-4 text-label text-ink hover:bg-line"
               >
                 Back to today
               </m.button>

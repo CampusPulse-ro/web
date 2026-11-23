@@ -117,8 +117,8 @@ export function DemoControl({ start, setStart, now, playing, setPlaying, wide }:
               className="mt-2 flex min-h-10 w-full items-center gap-2 rounded-lg px-2.5 text-sm font-semibold text-ink hover:bg-raised"
             >
               {playing ? <IconPause width={16} height={16} /> : <IconPlay width={16} height={16} />}
-              {playing ? 'Pause' : 'Play the day fast'}
-              <span className="ml-auto text-xs font-normal text-ink-muted">1 min = 0.1 s</span>
+              {playing ? 'Pause' : 'Play the day'}
+              <span className="ml-auto text-xs font-normal text-ink-muted">10 min a second</span>
             </button>
           </m.div>
         ) : (

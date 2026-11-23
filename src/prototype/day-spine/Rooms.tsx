@@ -34,8 +34,8 @@ import { Segmented } from './ui'
 function StatusLine({ s, moment }: { s: RoomStatus; moment: number }) {
   if (s.state === 'free') {
     return (
-      <span className="flex items-center gap-2 text-body-small">
-        <span aria-hidden className="size-2 shrink-0 rounded-full bg-success" />
+      <span className="text-body-small">
+        <span aria-hidden className="mr-2 inline-block size-2 rounded-full bg-success" />
         <span className="b-free-text">
           {s.until === null ? (
             'Free for the rest of the day'
@@ -46,18 +46,18 @@ function StatusLine({ s, moment }: { s: RoomStatus; moment: number }) {
           )}
         </span>
         {s.until !== null ? (
-          <span className="b-num text-ink-muted">{duration(s.until - moment)}</span>
+          <span className="b-num ml-2 text-ink-muted">{duration(s.until - moment)}</span>
         ) : null}
       </span>
     )
   }
   return (
-    <span className="flex items-center gap-2 text-body-small">
-      <span aria-hidden className="size-2 shrink-0 rounded-full border-2 border-warn" />
+    <span className="text-body-small">
+      <span aria-hidden className="mr-2 inline-block size-2 rounded-full border-2 border-warn" />
       <span className="b-busy-text">
         In use until <span className="b-num">{hhmm(s.until ?? 0)}</span>
       </span>
-      <span className="text-ink-muted">
+      <span className="ml-2 text-ink-muted">
         {s.nextFree?.end ? (
           <>
             then free until <span className="b-num">{hhmm(s.nextFree.end)}</span>
@@ -102,7 +102,7 @@ function DayPills({ date, onPick }: { date: string; onPick: (d: string) => void 
           type="button"
           aria-pressed={d === date}
           onClick={() => onPick(d)}
-          className={`flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full px-1 text-label transition-colors ${
+          className={`flex min-h-12 flex-1 items-center justify-center gap-1 rounded-full px-1 text-label transition-colors ${
             d === date ? 'bg-raised text-ink' : 'text-ink-muted hover:text-ink-soft'
           }`}
         >
@@ -295,7 +295,7 @@ export function RoomsList({ selected }: { selected: string | null }) {
                     onChange={(e) =>
                       e.target.value && go({ from: e.target.value }, { replace: true })
                     }
-                    className="b-num min-h-10 rounded-md bg-raised px-2 text-ink"
+                    className="b-num min-h-12 rounded-md bg-raised px-2 text-ink"
                   />
                 </label>
                 <label className="flex items-center gap-2 text-body-small text-ink-soft">
@@ -305,7 +305,7 @@ export function RoomsList({ selected }: { selected: string | null }) {
                     step={300}
                     value={until !== null ? hhmm(until) : ''}
                     onChange={(e) => go({ until: e.target.value || null }, { replace: true })}
-                    className="b-num min-h-10 rounded-md bg-raised px-2 text-ink"
+                    className="b-num min-h-12 rounded-md bg-raised px-2 text-ink"
                   />
                 </label>
               </div>
@@ -314,7 +314,7 @@ export function RoomsList({ selected }: { selected: string | null }) {
               <button
                 type="button"
                 onClick={() => go({ grp: null }, { replace: true })}
-                className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full bg-raised pr-2.5 pl-3.5 text-label text-ink hover:bg-line"
+                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-raised pr-2.5 pl-3.5 text-label text-ink hover:bg-line"
               >
                 {groupLabel(nav.grp)} only
                 <IconClose width={16} height={16} aria-label="clear" />
