@@ -8,7 +8,7 @@ import { useAuth } from '../auth'
 import { Banner } from '../components/Banner'
 import { Icon } from '../components/Icon'
 import { buttonClasses, textLinkClasses } from '../components/styles'
-import { formatDateTime, useDateTimeFormat } from '../i18n/format'
+import { formatDateTime, useDateTimeFormat, useMinute } from '../i18n/format'
 
 const sampleClasses = [
   {
@@ -307,7 +307,7 @@ function UpcomingDeadlines() {
   const { t } = useTranslation()
   const format = useDateTimeFormat()
   const deadlines = useDeadlines()
-  const [now] = useState(() => Date.now())
+  const now = useMinute()
   const next = (deadlines.data ?? []).filter((item) => !item.done).slice(0, 3)
 
   return (

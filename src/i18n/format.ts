@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { currentLanguage, isLanguage, type Language } from './index'
 
@@ -43,6 +44,16 @@ export function useDateTimeFormat() {
     custom: (value: Date | number, options: Intl.DateTimeFormatOptions) =>
       formatDateTime(value, options, language),
   }
+}
+
+/** The current time, moved on every minute (so a deadline turns overdue while a page is open). */
+export function useMinute(): number {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  return now
 }
 
 // Campus wall time: date and time inputs are read and filled in campus time, whatever the

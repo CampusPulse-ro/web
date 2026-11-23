@@ -3,6 +3,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import type { Me } from '../api/client'
 import { useDeleteAccount } from '../api/useAccount'
+import { accountDeleted } from '../auth/session'
 import { Banner } from './Banner'
 import { Button } from './Button'
 import { Dialog } from './Dialog'
@@ -36,9 +37,16 @@ export function DeleteAccount({ user }: { user: Me }) {
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (!matches) return
-    remove.mutate(undefined, {
-      onSuccess: () => navigate('/account-deletion', { replace: true }),
-    })
+    remove
+      .mutateAsync()
+      .then(() => {
+        // Leave the page first: signing out unmounts a page that needs a session (/account).
+        navigate('/account-deletion', { replace: true })
+        accountDeleted()
+      })
+      .catch(() => {
+        // `remove.isError` shows it in the dialog.
+      })
   }
 
   return (

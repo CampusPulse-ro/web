@@ -24,7 +24,7 @@ plain words. Keep each change small enough to read and test in a few minutes.
 | Path                 | What                                                                                                                            |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `src/App.tsx`        | Routes: `/` landing, `/app`, `/timetable`, `/deadlines`, `/account`, `/sign-in`, `/privacy`, `/account-deletion`, `*` not found |
-| `src/auth/`          | Sign-in (email code, Continue with UPT) and the session: `session.ts` keeps our tokens, `client.ts` sends them                  |
+| `src/auth/`          | Sign-in (email code, Continue with UPT) and the session: `session.ts` keeps our tokens; `src/api/client.ts` sends them          |
 | `src/pages/`         | One component per page, `<Name>Page.tsx`                                                                                        |
 | `src/components/`    | Shared components                                                                                                               |
 | `src/Layout.tsx`     | Header/footer frame around every page                                                                                           |

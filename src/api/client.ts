@@ -16,6 +16,13 @@ export type Deadline = components['schemas']['DeadlineResponse']
 
 /** Every request gives up after this long instead of hanging the screen. */
 const timeoutMs = 8000
+/**
+ * `/auth/*` waits longer than the API's own request timeout (30 s), so a client that gives up
+ * means the server gave up too. A refresh the server finished while the client had already
+ * stopped waiting would leave the client holding a rotated token, and showing that one again
+ * later ends the session.
+ */
+const authTimeoutMs = 35_000
 
 /**
  * How requests get the signed-in student's access token, set by `auth/session.ts` (which owns the
@@ -45,11 +52,23 @@ function apiPath(request: Request): string {
   return base && path.startsWith(base) ? path.slice(base.length) || '/' : path
 }
 
-function send(request: Request): Promise<Response> {
+function send(request: Request, timeout = timeoutMs): Promise<Response> {
   return fetch(
     new Request(request, {
-      signal: AbortSignal.any([request.signal, AbortSignal.timeout(timeoutMs)]),
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(timeout)]),
     }),
+  )
+}
+
+/**
+ * A 401 about our bearer token comes with no body (only `WWW-Authenticate`). A 401 an endpoint
+ * answers itself is a ProblemDetails about something in the request, e.g. linking UPT with a
+ * Microsoft token the API refuses (`microsoft-token-invalid`): that's not the session's fault.
+ */
+function refusesBearer(response: Response): boolean {
+  return (
+    response.status === 401 &&
+    !(response.headers.get('Content-Type') ?? '').includes('application/problem+json')
   )
 }
 
@@ -67,9 +86,8 @@ function withBearer(request: Request, token: string): Request {
  */
 async function authorizedFetch(request: Request): Promise<Response> {
   const path = apiPath(request)
-  if (!session || path.startsWith('/auth/') || request.headers.has('Authorization')) {
-    return send(request)
-  }
+  if (path.startsWith('/auth/')) return send(request, authTimeoutMs)
+  if (!session || request.headers.has('Authorization')) return send(request)
 
   const token = await session.accessToken()
   if (!token) return send(request)
@@ -78,11 +96,11 @@ async function authorizedFetch(request: Request): Promise<Response> {
   const retry = request.clone()
   let response = await send(withBearer(request, token))
 
-  if (response.status === 401) {
+  if (refusesBearer(response)) {
     const fresh = await session.replaceRejected(token)
     if (!fresh) return response
     response = await send(withBearer(retry, fresh))
-    if (response.status === 401) session.sessionRefused()
+    if (refusesBearer(response)) session.sessionRefused()
   }
 
   if (response.status === 404 && request.method === 'GET' && /^\/me(\/|$)/.test(path)) {

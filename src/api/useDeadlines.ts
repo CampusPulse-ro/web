@@ -61,14 +61,15 @@ export function useSetDeadlineDone() {
       unwrap(await api.PATCH('/me/deadlines/{id}', { params: { path: { id } }, body: { done } })),
     onMutate: async ({ id, done }) => {
       await queryClient.cancelQueries({ queryKey: deadlinesKey })
-      const before = queryClient.getQueryData<Deadline[]>(deadlinesKey)
       queryClient.setQueryData<Deadline[]>(deadlinesKey, (list) =>
         list?.map((item) => (item.id === id ? { ...item, done } : item)),
       )
-      return { before }
     },
-    onError: (_err, _vars, context) => {
-      if (context?.before) queryClient.setQueryData(deadlinesKey, context.before)
+    // Only this item goes back: other rows ticked meanwhile keep their change.
+    onError: (_err, { id, done }) => {
+      queryClient.setQueryData<Deadline[]>(deadlinesKey, (list) =>
+        list?.map((item) => (item.id === id ? { ...item, done: !done } : item)),
+      )
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: deadlinesKey }),
   })

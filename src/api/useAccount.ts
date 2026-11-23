@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { accountDeleted, updateUser } from '../auth/session'
+import { updateUser } from '../auth/session'
 import { api, unwrap } from './client'
 
 /** `GET /me`, kept fresh on the account page (UPT may have been linked on another device). */
@@ -25,14 +25,13 @@ export function useUnlinkUpt() {
 }
 
 /**
- * `DELETE /me`: the account and everything in it. The API ends its sessions too, so this device
- * signs out at once.
+ * `DELETE /me`: the account and everything in it. The API ends its sessions too: the caller signs
+ * this device out right after (`accountDeleted()`), once it has moved off any page that needs one.
  */
 export function useDeleteAccount() {
   return useMutation({
     mutationFn: async () => {
       unwrap(await api.DELETE('/me'))
     },
-    onSuccess: () => accountDeleted(),
   })
 }

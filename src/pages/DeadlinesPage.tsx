@@ -24,6 +24,7 @@ import {
   daysBetween,
   isoWeekday,
   useDateTimeFormat,
+  useMinute,
 } from '../i18n/format'
 
 /** The API's limits (api README, "Manual deadlines"). */
@@ -43,16 +44,6 @@ function bucketOf(dueAt: number, now: number): Bucket {
   return 'later'
 }
 
-/** The current time, moved on every minute so a deadline turns overdue while the page is open. */
-function useMinute(): number {
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 60_000)
-    return () => window.clearInterval(timer)
-  }, [])
-  return now
-}
-
 type Editing = { mode: 'add' } | { mode: 'edit'; deadline: Deadline } | null
 
 export function DeadlinesPage() {
@@ -60,6 +51,9 @@ export function DeadlinesPage() {
   const { user } = useAuth()
   const deadlines = useDeadlines()
   const now = useMinute()
+  // Kept here, not in the row: ticking moves the row to another group, which remounts it.
+  const setDone = useSetDeadlineDone()
+  const toggle = (deadline: Deadline, done: boolean) => setDone.mutate({ id: deadline.id, done })
   const [editing, setEditing] = useState<Editing>(null)
   const [deleting, setDeleting] = useState<Deadline | null>(null)
   const [showDone, setShowDone] = useState(false)
@@ -104,6 +98,17 @@ export function DeadlinesPage() {
         </span>
       </p>
 
+      {setDone.isError && (
+        <Banner
+          tone="error"
+          role="alert"
+          dismissLabel={t('signIn.dismiss')}
+          onDismiss={() => setDone.reset()}
+        >
+          {t('deadlines.doneFailed')}
+        </Banner>
+      )}
+
       {deadlines.isPending ? (
         <p role="status" className="m-0 text-body text-ink-muted">
           {t('deadlines.loading')}
@@ -145,6 +150,7 @@ export function DeadlinesPage() {
                 items={items}
                 now={now}
                 overdue={bucket === 'overdue'}
+                onToggle={toggle}
                 onEdit={(deadline) => setEditing({ mode: 'edit', deadline })}
                 onDelete={setDeleting}
               />
@@ -173,6 +179,7 @@ export function DeadlinesPage() {
                   <DeadlineList
                     items={done}
                     now={now}
+                    onToggle={toggle}
                     onEdit={(deadline) => setEditing({ mode: 'edit', deadline })}
                     onDelete={setDeleting}
                   />
@@ -194,11 +201,12 @@ interface GroupProps {
   items: Deadline[]
   now: number
   overdue?: boolean
+  onToggle: (deadline: Deadline, done: boolean) => void
   onEdit: (deadline: Deadline) => void
   onDelete: (deadline: Deadline) => void
 }
 
-function DeadlineGroup({ title, items, now, overdue, onEdit, onDelete }: GroupProps) {
+function DeadlineGroup({ title, items, now, overdue, onToggle, onEdit, onDelete }: GroupProps) {
   const headingId = useId()
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
@@ -209,12 +217,24 @@ function DeadlineGroup({ title, items, now, overdue, onEdit, onDelete }: GroupPr
         {title}
         <span className="text-body-small text-ink-muted">{items.length}</span>
       </h2>
-      <DeadlineList items={items} now={now} onEdit={onEdit} onDelete={onDelete} />
+      <DeadlineList
+        items={items}
+        now={now}
+        onToggle={onToggle}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
     </section>
   )
 }
 
-function DeadlineList({ items, now, onEdit, onDelete }: Omit<GroupProps, 'title' | 'overdue'>) {
+function DeadlineList({
+  items,
+  now,
+  onToggle,
+  onEdit,
+  onDelete,
+}: Omit<GroupProps, 'title' | 'overdue'>) {
   return (
     <ul className="m-0 flex list-none flex-col divide-y divide-line border-y border-line p-0">
       {items.map((item) => (
@@ -222,6 +242,7 @@ function DeadlineList({ items, now, onEdit, onDelete }: Omit<GroupProps, 'title'
           key={item.id}
           deadline={item}
           now={now}
+          onToggle={(done) => onToggle(item, done)}
           onEdit={() => onEdit(item)}
           onDelete={() => onDelete(item)}
         />
@@ -233,14 +254,14 @@ function DeadlineList({ items, now, onEdit, onDelete }: Omit<GroupProps, 'title'
 interface RowProps {
   deadline: Deadline
   now: number
+  onToggle: (done: boolean) => void
   onEdit: () => void
   onDelete: () => void
 }
 
-function DeadlineRow({ deadline, now, onEdit, onDelete }: RowProps) {
+function DeadlineRow({ deadline, now, onToggle, onEdit, onDelete }: RowProps) {
   const { t } = useTranslation()
   const format = useDateTimeFormat()
-  const setDone = useSetDeadlineDone()
   const dueAt = Date.parse(deadline.dueAt)
   const late = !deadline.done && dueAt < now
   const titleId = useId()
@@ -271,7 +292,7 @@ function DeadlineRow({ deadline, now, onEdit, onDelete }: RowProps) {
       <input
         type="checkbox"
         checked={deadline.done}
-        onChange={(event) => setDone.mutate({ id: deadline.id, done: event.target.checked })}
+        onChange={(event) => onToggle(event.target.checked)}
         aria-labelledby={titleId}
         aria-describedby={`${titleId}-due`}
         className="mt-1 size-5 shrink-0 cursor-pointer accent-accent"
@@ -296,11 +317,6 @@ function DeadlineRow({ deadline, now, onEdit, onDelete }: RowProps) {
         )}
         {deadline.notes && (
           <p className="m-0 text-body-small whitespace-pre-line text-ink-muted">{deadline.notes}</p>
-        )}
-        {setDone.isError && (
-          <p role="alert" className="m-0 text-body-small text-danger">
-            {t('deadlines.saveFailed')}
-          </p>
         )}
       </div>
       <div className="flex shrink-0 gap-1">

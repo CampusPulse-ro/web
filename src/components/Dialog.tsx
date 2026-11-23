@@ -24,6 +24,11 @@ export function Dialog({ open, onClose, title, description, children, busy = fal
   // Where focus was when it opened. The browser puts it back on close, but not when the focused
   // control inside was removed first (the panel unmounts with `open`), so this does it then.
   const opener = useRef<HTMLElement | null>(null)
+  // The latest `open` and `onClose`, for the native close event below.
+  const latest = useRef({ open, onClose })
+  useEffect(() => {
+    latest.current = { open, onClose }
+  })
   const titleId = useId()
   const descriptionId = useId()
 
@@ -58,6 +63,11 @@ export function Dialog({ open, onClose, title, description, children, busy = fal
       onCancel={(event) => {
         event.preventDefault() // the parent closes it, so `open` stays the truth
         if (!busy) onClose()
+      }}
+      onClose={() => {
+        // The browser closed it on its own (a second Escape while `busy` can't be stopped):
+        // let the parent know, so `open` and the dialog agree again.
+        if (latest.current.open) latest.current.onClose()
       }}
       onMouseDown={(event) => {
         // The dialog element itself is the margin around the panel (and the backdrop).

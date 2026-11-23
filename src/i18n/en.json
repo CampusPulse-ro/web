@@ -289,6 +289,7 @@
     "dueYesterday": "Yesterday, {{time}}",
     "dueOn": "{{day}}, {{time}}",
     "saveFailed": "Couldn't save. Try again.",
+    "doneFailed": "Couldn't save that change, so it was put back. Try again.",
     "edit": "Edit",
     "editNamed": "Edit {{title}}",
     "deleteNamed": "Delete {{title}}",

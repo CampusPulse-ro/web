@@ -289,6 +289,7 @@
     "dueYesterday": "Ieri, {{time}}",
     "dueOn": "{{day}}, {{time}}",
     "saveFailed": "Nu s-a putut salva. Încearcă din nou.",
+    "doneFailed": "Modificarea nu s-a putut salva, așa că a fost anulată. Încearcă din nou.",
     "edit": "Editează",
     "editNamed": "Editează {{title}}",
     "deleteNamed": "Șterge {{title}}",
