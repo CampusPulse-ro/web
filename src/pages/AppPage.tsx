@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import type { Me } from '../api/client'
 import { useApiStatus } from '../api/useApiStatus'
+import { useDeadlines } from '../api/useDeadlines'
 import { useAuth } from '../auth'
+import { Banner } from '../components/Banner'
 import { Icon } from '../components/Icon'
-import { formatDateTime } from '../i18n/format'
+import { buttonClasses, textLinkClasses } from '../components/styles'
+import { formatDateTime, useDateTimeFormat } from '../i18n/format'
 
 const sampleClasses = [
   {
@@ -39,10 +43,14 @@ export function AppPage() {
           {todayText}
         </span>
         <h1 className="m-0 text-title font-bold tracking-tight text-ink">
-          {user?.name ? t('appPage.greetingWithName', { name: user.name }) : t('appPage.title')}
+          {user?.displayName
+            ? t('appPage.greetingWithName', { name: user.displayName })
+            : t('appPage.title')}
         </h1>
         <p className="m-0 max-w-2xl text-body text-ink-muted">{t('appPage.subtitle')}</p>
       </header>
+
+      {user && !user.uptLinked && <LinkUptNudge user={user} />}
 
       {/* Backend API status line */}
       <ApiStatusLine />
@@ -167,15 +175,7 @@ export function AppPage() {
             </h2>
           </div>
 
-          <article className="rounded-md border border-line bg-sunken/40 p-4">
-            <span className="text-caption font-semibold tracking-wider text-warn uppercase">
-              {t('appPage.comingUp.exampleDeadline')}
-            </span>
-            <h3 className="mt-2 mb-1 text-subtitle font-semibold text-ink">
-              {t('appPage.comingUp.msaMilestone')}
-            </h3>
-            <p className="m-0 text-body-small text-ink-muted">{t('appPage.comingUp.msaNotice')}</p>
-          </article>
+          <UpcomingDeadlines />
 
           <article className="rounded-md border border-line bg-sunken/40 p-4">
             <span className="text-caption font-semibold tracking-wider text-accent uppercase">
@@ -256,6 +256,98 @@ function ApiStatusLine() {
           {t('appPage.api.retry')}
         </button>
       )}
+    </div>
+  )
+}
+
+/** Remembers, per account on this device, that the student closed the "link UPT" nudge. */
+const nudgeKey = (userId: string) => `campuspulse.linkUptNudgeDismissed.${userId}`
+
+function nudgeDismissed(userId: string): boolean {
+  try {
+    return localStorage.getItem(nudgeKey(userId)) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** One quiet banner while UPT isn't linked; closing it hides it on this device. Never blocks. */
+function LinkUptNudge({ user }: { user: Me }) {
+  const { t } = useTranslation()
+  const [dismissed, setDismissed] = useState(() => nudgeDismissed(user.id))
+  if (dismissed) return null
+
+  const dismiss = () => {
+    setDismissed(true)
+    try {
+      localStorage.setItem(nudgeKey(user.id), '1')
+    } catch {
+      // storage blocked: hidden for this visit only
+    }
+  }
+
+  return (
+    <Banner
+      tone="info"
+      dismissLabel={t('appPage.linkUpt.dismiss')}
+      onDismiss={dismiss}
+      action={
+        <Link to="/account" className={buttonClasses('secondary', 'sm')}>
+          {t('appPage.linkUpt.action')}
+        </Link>
+      }
+    >
+      {t('appPage.linkUpt.message')}
+    </Banner>
+  )
+}
+
+/** The next few deadlines that aren't done, with a way to the full list. */
+function UpcomingDeadlines() {
+  const { t } = useTranslation()
+  const format = useDateTimeFormat()
+  const deadlines = useDeadlines()
+  const [now] = useState(() => Date.now())
+  const next = (deadlines.data ?? []).filter((item) => !item.done).slice(0, 3)
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h3 className="m-0 text-subtitle text-ink">{t('appPage.comingUp.deadlines')}</h3>
+      {deadlines.isPending ? (
+        <p className="m-0 text-body-small text-ink-muted">{t('deadlines.loading')}</p>
+      ) : deadlines.isError && !deadlines.data ? (
+        <p className="m-0 text-body-small text-ink-muted">
+          {t('deadlines.loadFailed')}{' '}
+          <button
+            type="button"
+            onClick={() => void deadlines.refetch()}
+            className={`cursor-pointer ${textLinkClasses}`}
+          >
+            {t('deadlines.retry')}
+          </button>
+        </p>
+      ) : next.length === 0 ? (
+        <p className="m-0 text-body-small text-ink-muted">{t('appPage.comingUp.noDeadlines')}</p>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+          {next.map((item) => {
+            const dueAt = Date.parse(item.dueAt)
+            return (
+              <li key={item.id} className="flex items-baseline justify-between gap-3">
+                <span className="min-w-0 truncate text-body-small text-ink">{item.title}</span>
+                <span
+                  className={`shrink-0 text-caption tabular-nums ${dueAt < now ? 'text-warn' : 'text-ink-muted'}`}
+                >
+                  {format.custom(dueAt, { day: 'numeric', month: 'short' })}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <Link to="/deadlines" className={`w-fit text-body-small ${textLinkClasses}`}>
+        {t('appPage.comingUp.allDeadlines')}
+      </Link>
     </div>
   )
 }

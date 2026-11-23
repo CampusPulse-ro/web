@@ -9,10 +9,13 @@ import { queryClient } from './api/queryClient'
 import { AuthProvider, ProtectedRoute } from './auth'
 import { Layout } from './Layout'
 import { AccountDeletionPage } from './pages/AccountDeletionPage'
+import { AccountPage } from './pages/AccountPage'
 import { AppPage } from './pages/AppPage'
+import { DeadlinesPage } from './pages/DeadlinesPage'
 import { HomePage } from './pages/HomePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PrivacyPage } from './pages/PrivacyPage'
+import { SignInPage } from './pages/SignInPage'
 import { TimetablePage } from './pages/TimetablePage'
 
 /** Renders the app (started by `main.tsx` when the URL isn't a sign-in answer). */
@@ -41,6 +44,23 @@ export function renderApp() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="deadlines"
+                  element={
+                    <ProtectedRoute>
+                      <DeadlinesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="account"
+                  element={
+                    <ProtectedRoute>
+                      <AccountPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="sign-in" element={<SignInPage />} />
                 <Route path="privacy" element={<PrivacyPage />} />
                 <Route path="account-deletion" element={<AccountDeletionPage />} />
                 <Route path="*" element={<NotFoundPage />} />
