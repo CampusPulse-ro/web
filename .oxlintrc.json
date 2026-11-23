@@ -10,5 +10,13 @@
       }
     ],
     "react/jsx-no-literals": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/prototype/**"],
+      "rules": {
+        "react/jsx-no-literals": "off"
+      }
+    }
+  ]
 }
