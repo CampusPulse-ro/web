@@ -216,7 +216,11 @@ function Row({
       <span className="w-20 shrink-0 pt-0.5 text-caption text-ink-muted">{label}</span>
       <span className="min-w-0 flex-1">{children}</span>
       {onClick ? (
-        <IconNext width={18} height={18} className="mt-0.5 shrink-0 text-ink-muted" />
+        <IconNext
+          width={18}
+          height={18}
+          className="mt-0.5 shrink-0 text-ink-muted transition-transform group-hover/row:translate-x-0.5 group-hover/row:text-ink"
+        />
       ) : null}
       {href ? (
         <IconExternal width={18} height={18} className="mt-0.5 shrink-0 text-ink-muted" />
@@ -226,22 +230,13 @@ function Row({
   const cls = 'flex w-full items-start gap-3 py-3.5 text-left'
   if (onClick)
     return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={`${cls} -mx-3 rounded-md px-3 hover:bg-ink/5`}
-      >
+      <button type="button" onClick={onClick} className={`${cls} group/row hover:text-ink`}>
         {inner}
       </button>
     )
   if (href)
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className={`${cls} -mx-3 rounded-md px-3 hover:bg-ink/5`}
-      >
+      <a href={href} target="_blank" rel="noreferrer" className={`${cls} group/row hover:text-ink`}>
         {inner}
       </a>
     )
