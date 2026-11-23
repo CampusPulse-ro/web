@@ -20,6 +20,12 @@ export const msalConfig: Configuration = {
     // Per tab, and cleared right after use: the Microsoft token is only handed to the API once.
     cacheLocation: 'sessionStorage',
   },
+  system: {
+    // How long a popup sign-in may take before MSAL gives up (its default is one minute, less
+    // than a password plus an Authenticator prompt can take). A closed window doesn't need the
+    // time-out: starting again replaces it (`microsoftAccessToken`).
+    popupBridgeTimeout: 15 * 60_000,
+  },
 }
 
 export const msalInstance = new PublicClientApplication(msalConfig)
@@ -85,19 +91,16 @@ export function isPopupBlocked(err: unknown): boolean {
 }
 
 /**
- * The student closed or abandoned the Microsoft window, or opened a new one. MSAL v5 can't see a
- * popup being closed (it waits for the answer on a BroadcastChannel), so an abandoned one ends
- * as `timed_out` after a minute, and a newer attempt cancels the older one's wait.
+ * The student cancelled, or opened a new Microsoft window: MSAL v5 can't see a popup being closed
+ * (it waits for the answer on a BroadcastChannel), and a newer attempt cancels the older one's
+ * wait. A wait that runs out (`timed_out`, after `popupBridgeTimeout`) is not a cancel: it says so.
  */
 export function isCancelled(err: unknown): boolean {
   return (
     err instanceof BrowserAuthError &&
-    [
-      'user_cancelled',
-      'user_cancelled_interaction',
-      'interaction_in_progress_cancelled',
-      'timed_out',
-    ].includes(err.errorCode)
+    ['user_cancelled', 'user_cancelled_interaction', 'interaction_in_progress_cancelled'].includes(
+      err.errorCode,
+    )
   )
 }
 

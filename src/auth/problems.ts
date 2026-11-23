@@ -1,4 +1,4 @@
-import { AuthError } from '@azure/msal-browser'
+import { AuthError, BrowserAuthError } from '@azure/msal-browser'
 import { ApiError } from '../api/client'
 import { SessionUnavailableError } from './session'
 import type { AuthProblem, AuthProblemCode } from './types'
@@ -29,6 +29,9 @@ export function authProblem(err: unknown): AuthProblem {
     return { code: 'unknown' }
   }
   if (isUnreachable(err)) return { code: 'unreachable' }
+  if (err instanceof BrowserAuthError && err.errorCode === 'timed_out') {
+    return { code: 'microsoft-timeout' }
+  }
   if (err instanceof AuthError) return { code: 'microsoft-error', detail: err.message }
   return { code: 'unknown' }
 }

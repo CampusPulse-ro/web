@@ -53,8 +53,12 @@ export function useUpdateDeadline() {
   })
 }
 
-/** `PATCH /me/deadlines/{id}` `{ done }`, shown at once and put back if the API refuses it. */
-export function useSetDeadlineDone() {
+/**
+ * `PATCH /me/deadlines/{id}` `{ done }`, shown at once and put back if the API refuses it.
+ * `onFailed` runs for every call that fails (the mutation's own error state follows only the
+ * latest call, so an earlier one failing after a later started would go unnoticed).
+ */
+export function useSetDeadlineDone(onFailed?: () => void) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, done }: { id: string; done: boolean }) =>
@@ -70,6 +74,7 @@ export function useSetDeadlineDone() {
       queryClient.setQueryData<Deadline[]>(deadlinesKey, (list) =>
         list?.map((item) => (item.id === id ? { ...item, done: !done } : item)),
       )
+      onFailed?.()
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: deadlinesKey }),
   })

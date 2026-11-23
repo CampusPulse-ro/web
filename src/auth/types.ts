@@ -11,6 +11,7 @@ export type AuthProblemCode =
   | 'sign-in-unavailable'
   | 'rate-limited'
   | 'unreachable'
+  | 'microsoft-timeout'
   | 'microsoft-error'
   | 'unknown'
 

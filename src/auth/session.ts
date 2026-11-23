@@ -153,20 +153,40 @@ function end(reason: SignedOutReason | null) {
 type RefreshOutcome = 'ok' | 'signedOut' | 'unreachable'
 
 let inFlight: Promise<RefreshOutcome> | null = null
+let retryTimer: number | null = null
 
 /** One refresh at a time in this tab (shared by every caller), and one at a time across tabs. */
 function refresh(): Promise<RefreshOutcome> {
-  inFlight ??= (async () => {
-    // An answer for a session that ended or changed meanwhile is dropped; ask again for the new one.
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const outcome = await withLock(refreshHoldingLock)
-      if (outcome !== 'stale') return outcome
-    }
-    return 'unreachable' as const
-  })().finally(() => {
-    inFlight = null
-  })
+  if (!inFlight) {
+    inFlight = (async () => {
+      // An answer for a session that ended or changed meanwhile is dropped; ask again for the new one.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const outcome = await withLock(refreshHoldingLock)
+        if (outcome !== 'stale') return outcome
+      }
+      return 'unreachable' as const
+    })().finally(() => {
+      inFlight = null
+    })
+    void inFlight.then(retrySoonIfUnreachable)
+  }
   return inFlight
+}
+
+/**
+ * The server may have rotated the token even though its answer never arrived (the connection
+ * dropped). It accepts the old token again for one minute after that, so try once more well
+ * within it, rather than at the next request, which may come too late and end the session.
+ * Once per failure: a retry that fails too doesn't schedule another.
+ */
+function retrySoonIfUnreachable(outcome: RefreshOutcome) {
+  if (outcome !== 'unreachable' || retryTimer !== null || typeof window === 'undefined') return
+  retryTimer = window.setTimeout(() => {
+    const needed = readStored() && !(access && access.expiresAt - Date.now() > refreshMarginMs)
+    void (needed ? refresh() : Promise.resolve()).finally(() => {
+      retryTimer = null
+    })
+  }, 5000)
 }
 
 async function refreshHoldingLock(): Promise<RefreshOutcome | 'stale'> {

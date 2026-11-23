@@ -50,6 +50,7 @@
       "sign-in-unavailable": "Conectarea nu funcționează acum pe server. Încearcă mai târziu.",
       "rate-limited": "Prea multe încercări. Așteaptă puțin și încearcă din nou.",
       "unreachable": "CampusPulse nu poate fi contactat. Verifică-ți conexiunea și încearcă din nou.",
+      "microsoft-timeout": "Conectarea Microsoft a durat prea mult. Încearcă din nou.",
       "microsoft-error": "Microsoft nu te-a putut conecta.",
       "unknown": "Ceva n-a mers. Încearcă din nou."
     },

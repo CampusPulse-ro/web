@@ -50,6 +50,7 @@
       "sign-in-unavailable": "Signing in doesn't work on the server right now. Try again later.",
       "rate-limited": "Too many attempts. Wait a little and try again.",
       "unreachable": "Can't reach CampusPulse. Check your connection and try again.",
+      "microsoft-timeout": "The Microsoft sign-in took too long. Try again.",
       "microsoft-error": "Microsoft couldn't sign you in.",
       "unknown": "Something went wrong. Try again."
     },

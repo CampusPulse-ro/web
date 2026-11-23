@@ -52,8 +52,12 @@ export function DeadlinesPage() {
   const deadlines = useDeadlines()
   const now = useMinute()
   // Kept here, not in the row: ticking moves the row to another group, which remounts it.
-  const setDone = useSetDeadlineDone()
-  const toggle = (deadline: Deadline, done: boolean) => setDone.mutate({ id: deadline.id, done })
+  const [toggleFailed, setToggleFailed] = useState(false)
+  const setDone = useSetDeadlineDone(() => setToggleFailed(true))
+  const toggle = (deadline: Deadline, done: boolean) => {
+    setToggleFailed(false)
+    setDone.mutate({ id: deadline.id, done })
+  }
   const [editing, setEditing] = useState<Editing>(null)
   const [deleting, setDeleting] = useState<Deadline | null>(null)
   const [showDone, setShowDone] = useState(false)
@@ -98,12 +102,12 @@ export function DeadlinesPage() {
         </span>
       </p>
 
-      {setDone.isError && (
+      {toggleFailed && (
         <Banner
           tone="error"
           role="alert"
           dismissLabel={t('signIn.dismiss')}
-          onDismiss={() => setDone.reset()}
+          onDismiss={() => setToggleFailed(false)}
         >
           {t('deadlines.doneFailed')}
         </Banner>
