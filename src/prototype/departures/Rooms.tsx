@@ -38,14 +38,12 @@ function words(status: RoomStatus, rt: RoomTimetable | undefined): { text: strin
         ? { text: 'Free all day', sub: '' }
         : { text: 'Free to the end of the day', sub: '' }
     case 'busy': {
+      // The board answers "when can I get in?": free at…, then for how long.
       const nf = status.nextFree
+      if (!nf) return { text: 'In use to the end of the day', sub: '' }
       return {
-        text: `In use until ${clock(status.until)}`,
-        sub: !nf
-          ? 'Booked to the end of the day'
-          : nf.to >= DAY_END
-            ? 'Then free to the end of the day'
-            : `Then free ${clock(nf.from)} to ${clock(nf.to)}`,
+        text: `Free at ${clock(nf.from)}`,
+        sub: nf.to >= DAY_END ? 'then to the end of the day' : `until ${clock(nf.to)}`,
       }
     }
     case 'closed':

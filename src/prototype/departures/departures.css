@@ -1831,10 +1831,12 @@ button.dp-hero-main {
 }
 .dp-daynav {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 4px 16px var(--dp-pad);
+  min-height: 48px;
+  margin-bottom: 14px;
+  padding: 0 4px 0 var(--dp-pad);
 }
 .dp-daynav-actions {
   display: flex;
@@ -1855,15 +1857,18 @@ button.dp-hero-main {
 }
 .dp-weekhead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
-  padding: 0 0 14px 54px;
+  min-height: 48px;
+  margin-bottom: 14px;
+  padding-left: 54px;
 }
 .dp-weekhead-title {
   font-size: 22px;
   font-weight: 650;
 }
 .dp-weekhead-range {
+  padding-top: 4px;
   color: var(--color-ink-muted);
   font-size: 14px;
 }

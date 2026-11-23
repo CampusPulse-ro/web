@@ -363,12 +363,13 @@ function DeskToday() {
 function DeskRooms() {
   const { data, now, nav, go } = useApp()
   const h = heroState(data, now)
+  // With no room picked, show the one that matters now: this class's, the next one's.
   const fallback =
     (h.mode === 'class'
       ? h.current.room
       : h.mode === 'soon' || h.mode === 'free'
         ? h.next.room
-        : null) ??
+        : (h.later?.occ.room ?? null)) ??
     data.rooms[0]?.code ??
     ''
   const code = nav.room ?? fallback
