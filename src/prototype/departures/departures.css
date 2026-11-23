@@ -291,10 +291,18 @@ button.dp-hero-main:active,
   padding-left: 12px;
 }
 .dp-strip-week {
+  display: flex;
   flex: 1;
-  color: var(--color-ink-soft);
+  align-items: baseline;
+  gap: 10px;
+  color: var(--color-ink);
+  font-size: 17px;
+  font-weight: 650;
+}
+.dp-strip-weekno {
+  color: var(--color-ink-muted);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .dp-strip {
   display: grid;
@@ -355,7 +363,8 @@ button.dp-hero-main:active,
 
 .dp-back-today {
   position: absolute;
-  bottom: 16px;
+  /* Above the demo-time pill's row. */
+  bottom: 64px;
   left: 50%;
   z-index: 4;
   display: inline-flex;
@@ -993,7 +1002,7 @@ button.dp-hero-main {
   color: var(--color-ink-soft);
   font-size: 14px;
 }
-.dp-at input {
+.dp-at select {
   min-height: 40px;
   padding: 4px 8px;
   border-radius: 8px;
@@ -1361,7 +1370,7 @@ button.dp-hero-main {
   overflow: hidden;
   padding: 5px 4px 4px 8px;
   border-radius: 6px;
-  background: color-mix(in oklch, var(--dp-subject) 22%, var(--color-page));
+  background: color-mix(in oklch, var(--dp-subject) 26%, var(--color-page));
   color: var(--color-ink);
   text-align: left;
 }
@@ -1537,6 +1546,10 @@ button.dp-hero-main {
 }
 .dp-panel-close:hover {
   background: rgb(255 255 255 / 0.06);
+}
+.dp-sheet:focus-visible,
+.dp-panel:focus-visible {
+  outline: none;
 }
 .dp-panel-body {
   flex: 1;
@@ -1917,7 +1930,8 @@ button.dp-hero-main {
   position: fixed;
   left: 12px;
   bottom: calc(var(--dp-tabbar-h) + env(safe-area-inset-bottom) + 14px);
-  z-index: 60;
+  /* Under the scrim: an open sheet or panel covers it. */
+  z-index: 30;
   display: flex;
   flex-direction: column-reverse;
   align-items: flex-start;
@@ -1928,8 +1942,10 @@ button.dp-hero-main {
   line-height: 1.35;
 }
 .dp-root[data-phone='false'] .dp-demo {
-  left: 16px;
+  left: auto;
+  right: 16px;
   bottom: 16px;
+  align-items: flex-end;
 }
 .dp-demo-pill,
 .dp-demo-panel {
@@ -1964,6 +1980,13 @@ button.dp-hero-main {
   margin-bottom: 8px;
   color: #4b4739;
   font-size: 12px;
+}
+.dp-root[data-phone='true'] .dp-demo-intro {
+  display: none;
+}
+.dp-root[data-phone='true'] .dp-demo-list button {
+  min-height: 36px;
+  font-size: 13px;
 }
 .dp-demo-list {
   margin: 0;

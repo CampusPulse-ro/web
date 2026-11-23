@@ -108,7 +108,6 @@ function InClass({ h }: { h: Extract<HeroT, { mode: 'class' }> }) {
             <Dot kind="live" />
             In class in <span className="dp-num dp-hero-label-room">{roomOf(o)}</span>
           </span>
-          <span className="dp-hero-at dp-num">until {hm(o.endsAt)}</span>
         </span>
         <span className="dp-hero-count">
           <Countdown minutes={h.left} unitClass="dp-hero-unit" />

@@ -26,14 +26,17 @@ import { Dot, IconChevron, IconClose, IconSearch } from './ui'
 
 const EASE = [0.2, 0.8, 0.2, 1] as const
 
+/** Half-hour steps for "Free at…" (a native picker on phones, 24-hour like the campus). */
+const SLOTS = Array.from({ length: (DAY_END - DAY_START) / 30 }, (_, i) => DAY_START + i * 30)
+
 function words(status: RoomStatus, rt: RoomTimetable | undefined): { text: string; sub: string } {
   switch (status.kind) {
     case 'free':
       if (status.until !== null)
         return { text: `Free until ${clock(status.until)}`, sub: `for ${duration(status.freeFor)}` }
       return rt && rt.occurrences.length === 0
-        ? { text: 'Free all day', sub: 'No classes in it' }
-        : { text: 'Free for the rest of the day', sub: 'No more classes in it' }
+        ? { text: 'Free all day', sub: '' }
+        : { text: 'Free to the end of the day', sub: '' }
     case 'busy': {
       const nf = status.nextFree
       return {
@@ -220,18 +223,17 @@ export function RoomsList({
           <div className="dp-at">
             <label className="dp-at-label">
               Free at
-              <input
-                type="time"
+              <select
                 className="dp-num"
-                min="08:00"
-                max="20:00"
-                step={900}
-                value={clock(f.at)}
-                onChange={(e) => {
-                  const [h, mi] = e.target.value.split(':').map(Number)
-                  if (!Number.isNaN(h)) setRoomFilter({ ...f, at: h * 60 + (mi || 0) })
-                }}
-              />
+                value={f.at}
+                onChange={(e) => setRoomFilter({ ...f, at: Number(e.target.value) })}
+              >
+                {SLOTS.map((m) => (
+                  <option key={m} value={m}>
+                    {clock(m)}
+                  </option>
+                ))}
+              </select>
             </label>
             <div className="dp-chips">
               {[10, 12, 14, 16, 18].map((h) => (
@@ -257,8 +259,10 @@ export function RoomsList({
                 onClick={() => setRoomFilter({ ...f, near: null })}
                 aria-label={`Showing rooms free near ${near.room} until ${clock(near.until)}. Remove this filter.`}
               >
-                Near <span className="dp-num">{near.room}</span>, free until{' '}
-                <span className="dp-num">{clock(near.until)}</span>
+                <span>
+                  Near <span className="dp-num">{near.room}</span>, free until{' '}
+                  <span className="dp-num">{clock(near.until)}</span>
+                </span>
                 <IconClose />
               </button>
             )}

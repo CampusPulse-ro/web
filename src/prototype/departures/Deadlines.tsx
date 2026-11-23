@@ -107,9 +107,10 @@ export function DeadlinesView() {
             type="button"
             className="dp-fold-button"
             aria-expanded={showDone}
+            aria-label={`${GROUP_LABEL.done}, ${done.length}`}
             onClick={() => setShowDone(!showDone)}
           >
-            <span>
+            <span aria-hidden="true">
               {GROUP_LABEL.done} (<RollingCount value={done.length} />)
             </span>
             <IconChevron dir={showDone ? 'up' : 'down'} />

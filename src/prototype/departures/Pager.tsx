@@ -9,7 +9,7 @@ import { addDays } from '../clock'
 import { classesOn } from '../data'
 import { useApp } from './context'
 import { hueStyle, nonTeaching, shortOf, weekOf } from './model'
-import { dateRange, dayOfMonth, longDate, mondayOf, weekdayShort } from './time'
+import { dateRange, dayMonth, dayOfMonth, longDate, mondayOf, weekdayShort } from './time'
 import { IconChevron } from './ui'
 
 export function SnapPager<T>({
@@ -108,7 +108,10 @@ export function DayStrip({ days, selected }: { days: string[]; selected: string 
   return (
     <div className="dp-strip-head">
       <div className="dp-strip-top">
-        <span className="dp-strip-week">{n ? `Week ${n}` : 'Outside the semester'}</span>
+        <span className="dp-strip-week">
+          {dayMonth(selected).split(' ')[1]}
+          <span className="dp-strip-weekno">{n ? `Week ${n}` : 'Outside the semester'}</span>
+        </span>
         <button
           type="button"
           className="dp-icon-button"

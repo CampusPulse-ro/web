@@ -52,7 +52,10 @@ export function DemoControl({
                   <button
                     type="button"
                     aria-pressed={scenario === s.id}
-                    onClick={() => onScenario(s)}
+                    onClick={() => {
+                      onScenario(s)
+                      setOpen(false)
+                    }}
                   >
                     <span>{s.label}</span>
                     <span className="dp-demo-at">

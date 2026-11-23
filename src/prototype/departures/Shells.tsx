@@ -11,7 +11,7 @@ import { DayPage } from './Board'
 import { ClassDetail } from './ClassDetail'
 import { useApp } from './context'
 import { DeadlinesView, DueDetail } from './Deadlines'
-import { daySub, findClass, heroState, pagerDays, weekOf, weekRange } from './model'
+import { daySub, findClass, heroState, isWeekend, pagerDays, weekOf, weekRange } from './model'
 import { tick, type View } from './nav'
 import { Panel, Sheet } from './Overlay'
 import { BackToToday, DayStrip, SnapPager } from './Pager'
@@ -138,7 +138,11 @@ function PhoneToday() {
 function PhoneWeek() {
   const { data, today, selectedDay } = useApp()
   const mondays = [...new Set(pagerDays(data, today).map(mondayOf))]
-  const [i, setI] = useState(() => Math.max(0, mondays.indexOf(mondayOf(selectedDay))))
+  const [i, setI] = useState(() => {
+    const own = mondayOf(selectedDay)
+    const next = isWeekend(selectedDay) ? mondays.indexOf(addDays(own, 7)) : -1
+    return next >= 0 ? next : Math.max(0, mondays.indexOf(own))
+  })
   const monday = mondays[i] ?? mondays[0]
   const week = weekOf(data, monday)
   return (
@@ -243,7 +247,7 @@ export function DesktopApp() {
           ))}
         </nav>
         <p className="dp-topclock">
-          <span>{longDate(now.date)}</span>
+          <span>Now</span>
           <span className="dp-num dp-topclock-time">{clock(now.minutes)}</span>
         </p>
       </header>
@@ -265,18 +269,23 @@ function DeskToday() {
   const { data, today, selectedDay, selectDay } = useApp()
   const days = pagerDays(data, today)
   const i = days.indexOf(selectedDay)
-  const monday = mondayOf(selectedDay)
-  const week = weekOf(data, selectedDay)
+  // On a weekend the week just gone is history: show the coming one.
+  const shownMonday = isWeekend(selectedDay)
+    ? addDays(mondayOf(selectedDay), 7)
+    : mondayOf(selectedDay)
+  const monday = days.some((d) => mondayOf(d) === shownMonday) ? shownMonday : mondayOf(selectedDay)
+  const week = weekOf(data, monday)
   const step = (by: number) => {
     const next = days[i + by]
     if (next) selectDay(next)
   }
   const stepWeek = (by: number) => {
+    const target = addDays(monday, by * 7)
+    const wanted = days.filter((d) => mondayOf(d) === target && !isWeekend(d))
     const same = addDays(selectedDay, by * 7)
-    const wanted = days.filter((d) => mondayOf(d) === mondayOf(same))
     if (wanted.length) selectDay(wanted.includes(same) ? same : wanted[0])
   }
-  const sub = daySub(data, selectedDay, today)
+  const sub = daySub(selectedDay, today)
   return (
     <div className="dp-desk-today">
       <section className="dp-desk-day" aria-label="The day">

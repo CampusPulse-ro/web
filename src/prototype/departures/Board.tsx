@@ -27,14 +27,19 @@ const EASE = [0.2, 0.8, 0.2, 1] as const
 
 /** One day: its heading, the live hero (today) or a summary, the board, and what's due (today). */
 export function DayPage({ date, heading = true }: { date: string; heading?: boolean }) {
-  const { data, today } = useApp()
+  const { today, phone } = useApp()
   const isToday = date === today
-  const sub = daySub(data, date, today)
+  const sub = daySub(date, today)
+  // On the phone, today's date is already in the day strip: the hero comes first.
+  const quiet = phone && isToday
   return (
     <div className="dp-day">
       {heading && (
-        <header className="dp-day-head">
-          <h1 className="dp-day-title">{longDate(date)}</h1>
+        <header className={quiet ? 'dp-sr' : 'dp-day-head'}>
+          <h1 className="dp-day-title">
+            {quiet && 'Today, '}
+            {longDate(date)}
+          </h1>
           {sub && <p className="dp-day-sub">{sub}</p>}
         </header>
       )}
@@ -99,11 +104,13 @@ function BoardList({ date }: { date: string }) {
   if (board.count === 0) return null
   return (
     <div className="dp-board">
-      <div className="dp-board-head" aria-hidden="true">
-        <span>Time</span>
-        <span>Class</span>
-        <span>Room</span>
-      </div>
+      {board.items.length > 0 && (
+        <div className="dp-board-head" aria-hidden="true">
+          <span>Time</span>
+          <span>Class</span>
+          <span>Room</span>
+        </div>
+      )}
       {board.earlier.length > 0 && <EarlierFold items={board.earlier} />}
       <ul className="dp-rows" aria-label={`Classes, ${longDate(date)}`}>
         <AnimatePresence initial={false}>
@@ -197,9 +204,10 @@ function EarlierFold({ items }: { items: Occurrence[] }) {
         type="button"
         className="dp-fold-button"
         aria-expanded={open}
+        aria-label={`Earlier today, ${items.length} ${items.length === 1 ? 'class' : 'classes'}`}
         onClick={() => setOpen(!open)}
       >
-        <span>
+        <span aria-hidden="true">
           Earlier today (<RollingCount value={items.length} />)
         </span>
         <IconChevron dir={open ? 'up' : 'down'} />

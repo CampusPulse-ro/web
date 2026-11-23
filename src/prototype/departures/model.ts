@@ -272,7 +272,8 @@ export function boardFor(data: DemoData, date: string, now: WallTime): Board {
     if (prev && startOf(c) - endOf(prev) >= MIN_GAP) {
       const from = endOf(prev)
       const to = startOf(c)
-      if (!isToday || to > t) {
+      // A break that's under way and nearly over isn't worth a row: the hero already says "go".
+      if (!isToday || (to > t && !(from <= t && to - t <= SOON))) {
         items.push({
           type: 'gap',
           key: `gap-${from}`,
@@ -519,12 +520,11 @@ export function deadlineFor(list: Deadline[], short: string): Deadline | null {
   return list.find((d) => d.a.shortName === short && d.group !== 'done') ?? null
 }
 
-/** "Tomorrow, week 9" under a day's heading ("Week 9" for today). */
-export function daySub(data: DemoData, date: string, today: string): string {
-  const week = weekOf(data, date)
-  const rel = date === today ? null : relativeDayWord(date, today)
-  const parts = [rel, week ? `week ${week}` : null].filter(Boolean).join(', ')
-  return parts.charAt(0).toUpperCase() + parts.slice(1)
+/** "Tomorrow", "In 2 days", "Yesterday" under a day's heading; nothing for today. */
+export function daySub(date: string, today: string): string {
+  if (date === today) return ''
+  const rel = relativeDayWord(date, today)
+  return rel.charAt(0).toUpperCase() + rel.slice(1)
 }
 
 function relativeDayWord(date: string, today: string): string {

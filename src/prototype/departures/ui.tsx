@@ -87,7 +87,7 @@ const ROLL = {
   opacityTiming: { duration: 150, easing: 'ease-out' },
 }
 
-/** "12 min" or "1 h 05", with tabular digits that roll when they change. Hidden from screen readers. */
+/** "12 min", "1 h 05" or "2 h", with tabular digits that roll when they change. Hidden from screen readers. */
 export function Countdown({ minutes, unitClass }: { minutes: number; unitClass?: string }) {
   const m = Math.max(0, minutes)
   const h = Math.floor(m / 60)
@@ -101,7 +101,9 @@ export function Countdown({ minutes, unitClass }: { minutes: number; unitClass?:
             <span className={unitClass}>h</span>
           </>
         )}
-        <NumberFlow value={r} format={{ minimumIntegerDigits: h > 0 ? 2 : 1 }} {...ROLL} />
+        {(h === 0 || r > 0) && (
+          <NumberFlow value={r} format={{ minimumIntegerDigits: h > 0 ? 2 : 1 }} {...ROLL} />
+        )}
         {h === 0 && <span className={unitClass}>min</span>}
       </NumberFlowGroup>
     </span>
