@@ -35,6 +35,7 @@ import { WeekScreen } from './screens/Week'
 import { Avatar } from './screens/common'
 import { NavBar, NavRail } from './ui/Bars'
 import { ClassDetail } from './ui/ClassBits'
+import { ChatHost } from './chat'
 import { CellPanel } from './ui/CellPanel'
 import { Panel } from './ui/Panel'
 import { ShapeBadge } from './ui/Shape'
@@ -150,6 +151,7 @@ function Root() {
         >
           <SnackbarContext.Provider value={show}>
             <Shell />
+            <ChatHost />
             <DemoTime
               start={start}
               now={now}
