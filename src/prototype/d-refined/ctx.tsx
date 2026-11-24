@@ -9,6 +9,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import type { WallTime } from '../clock'
 import type { DemoData } from '../data'
 import type { CampusState, DueItem } from './campus'
+import type { CellStyle } from './cells'
 import type { SubjectLook } from './model'
 
 export const BASE = '/prototype'
@@ -35,6 +36,9 @@ export interface Proto {
   addDue: (d: DueItem) => void
   account: Account | null
   setAccount: (a: Account | null) => void
+  /** Prototype-only switch between the two cell designs (Demo time control). */
+  cellStyle: CellStyle
+  setCellStyle: (s: CellStyle) => void
 }
 
 export const ProtoContext = createContext<Proto | null>(null)
@@ -72,7 +76,7 @@ export function useReducedMotionPref() {
   return useMedia('(prefers-reduced-motion: reduce)')
 }
 
-const DEMO_KEYS = ['scenario', 'at']
+const DEMO_KEYS = ['scenario', 'at', 'cells']
 
 /** Build a prototype URL that keeps the demo moment. */
 export function useHref() {

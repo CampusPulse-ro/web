@@ -1,6 +1,6 @@
 import { AnimatePresence, m, useDragControls, type PanInfo } from 'motion/react'
 import { useEffect, useRef, type ReactNode } from 'react'
-import { APP_ID, themeColor } from '../ctx'
+import { APP_ID } from '../ctx'
 import { Icon } from '../icons'
 import { springs } from '../motion'
 
@@ -9,7 +9,7 @@ import { springs } from '../motion'
  * - Phone: a bottom sheet. It rises on a spring, follows the finger from its handle and top, flings
  *   closed, and has no Close button. Its background runs past the bottom edge, so the spring's small
  *   overshoot never shows a gap.
- * - Wide: a side panel. With `layoutId` it grows out of the calendar block that opened it (the block's
+ * - Wide: a side panel sliding in from the right. (A calendar cell opens into CellPanel instead.)
  *   own fill moves into place and settles into the panel colour, then the content fades in);
  *   without one it slides in from the right.
  * Esc and the scrim close it, the page behind is inert while it's open, and reduced motion turns
@@ -20,8 +20,6 @@ export function Panel({
   onClose,
   label,
   wide,
-  layoutId,
-  fromColor,
   title,
   children,
 }: {
@@ -29,9 +27,6 @@ export function Panel({
   onClose: () => void
   label: string
   wide: boolean
-  layoutId?: string
-  /** The colour the morph starts from (the block's fill). */
-  fromColor?: string
   /** Wide panels show it beside the Close button. */
   title?: string
   children: ReactNode
@@ -39,15 +34,7 @@ export function Panel({
   return (
     <AnimatePresence>
       {open && (
-        <Surface
-          key="panel"
-          onClose={onClose}
-          label={label}
-          wide={wide}
-          layoutId={layoutId}
-          fromColor={fromColor}
-          title={title}
-        >
+        <Surface key="panel" onClose={onClose} label={label} wide={wide} title={title}>
           {children}
         </Surface>
       )}
@@ -59,16 +46,12 @@ function Surface({
   onClose,
   label,
   wide,
-  layoutId,
-  fromColor,
   title,
   children,
 }: {
   onClose: () => void
   label: string
   wide: boolean
-  layoutId?: string
-  fromColor?: string
   title?: string
   children: ReactNode
 }) {
@@ -96,9 +79,6 @@ function Surface({
     }
   }, [])
 
-  const panelColor = themeColor('--md-sys-color-surface-container-low')
-  const morph = wide && !!layoutId
-
   const onDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.y > 100 || info.velocity.y > 500) onClose()
   }
@@ -122,36 +102,16 @@ function Surface({
           aria-label={label}
           className="fixed top-4 right-4 bottom-4 z-50 flex flex-col"
           style={{ width: 'min(440px, calc(100vw - 32px))' }}
-          initial={morph ? { opacity: 1 } : { x: '110%' }}
-          animate={morph ? { opacity: 1 } : { x: 0 }}
-          exit={
-            morph
-              ? { opacity: 0, transition: { duration: 0.18 } }
-              : { x: '110%', transition: springs.effectsDefault }
-          }
+          initial={{ x: '110%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '110%', transition: springs.effectsDefault }}
           transition={springs.spatialDefault}
         >
-          <m.div
-            layoutId={morph ? layoutId : undefined}
+          <div
             className="absolute inset-0"
-            style={{ borderRadius: 28 }}
-            initial={morph && fromColor ? { backgroundColor: fromColor } : false}
-            animate={{ backgroundColor: panelColor }}
-            transition={{
-              layout: springs.spatialDefault,
-              // the block's colour rides along while it moves, then settles into the panel's
-              backgroundColor: { duration: 0.32, delay: 0.22, ease: [0.2, 0, 0, 1] },
-            }}
+            style={{ background: 'var(--md-sys-color-surface-container-low)', borderRadius: 28 }}
           />
-          <m.div
-            className="relative flex min-h-0 flex-1 flex-col"
-            initial={morph ? { opacity: 0 } : false}
-            animate={{
-              opacity: 1,
-              transition: { ...springs.effectsDefault, delay: morph ? 0.12 : 0 },
-            }}
-            exit={{ opacity: 0, transition: { duration: 0.1 } }}
-          >
+          <div className="relative flex min-h-0 flex-1 flex-col">
             <div className="flex items-center gap-2 px-4 pt-3 pb-1">
               <span className="t-title-l flex-1 px-2">{title}</span>
               <button
@@ -170,7 +130,7 @@ function Surface({
             >
               {children}
             </div>
-          </m.div>
+          </div>
         </m.div>
       ) : (
         <m.div

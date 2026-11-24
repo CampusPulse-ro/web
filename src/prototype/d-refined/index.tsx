@@ -12,7 +12,6 @@ import { initialStart, scenarios, scenarioStart, useDemoClock, type WallTime } f
 import { useDemoData } from '../data'
 import {
   APP_ID,
-  themeColor,
   type Account,
   ProtoContext,
   SnackbarContext,
@@ -24,7 +23,8 @@ import {
 } from './ctx'
 import { Icon } from './icons'
 import type { CampusState, DueItem } from './campus'
-import { findClass, hhmm, shortDate, shortOf, subjectLooks } from './model'
+import type { CellStyle } from './cells'
+import { findClass, hhmm, shortDate, subjectLooks, type Cls } from './model'
 import { springs } from './motion'
 import { DeadlinesScreen } from './screens/Deadlines'
 import { ProfileScreen } from './screens/Profile'
@@ -35,6 +35,7 @@ import { WeekScreen } from './screens/Week'
 import { Avatar } from './screens/common'
 import { NavBar, NavRail } from './ui/Bars'
 import { ClassDetail } from './ui/ClassBits'
+import { CellPanel } from './ui/CellPanel'
 import { Panel } from './ui/Panel'
 import { ShapeBadge } from './ui/Shape'
 
@@ -80,6 +81,16 @@ function Root() {
   const navigate = useNavigate()
   const location = useLocation()
   const [origin, setOrigin] = useState<string | null>(null)
+  const [cellStyle, setCellStyleState] = useState<CellStyle>(() =>
+    new URLSearchParams(window.location.search).get('cells') === 'raised' ? 'raised' : 'edge',
+  )
+  const setCellStyle = (v: CellStyle) => {
+    setCellStyleState(v)
+    const q = new URLSearchParams(location.search)
+    if (v === 'raised') q.set('cells', 'raised')
+    else q.delete('cells')
+    navigate(`${location.pathname}${q.size ? `?${q}` : ''}`, { replace: true })
+  }
   const [campus, setCampus] = useState<CampusState>({ patches: {}, added: [] })
   const [account, setAccountState] = useState<Account | null>(readAccount)
   const setAccount = useCallback((a: Account | null) => {
@@ -111,7 +122,10 @@ function Root() {
     setStart(scenarioStart(s))
     setEpoch((e) => e + 1)
     // a new moment starts on "today": drop the day/week being browsed and any open sheet
-    navigate(`${location.pathname}?scenario=${s.id}`, { replace: true })
+    const cells = new URLSearchParams(location.search).get('cells')
+    navigate(`${location.pathname}?scenario=${s.id}${cells ? `&cells=${cells}` : ''}`, {
+      replace: true,
+    })
   }
 
   return (
@@ -130,11 +144,19 @@ function Root() {
             addDue,
             account,
             setAccount,
+            cellStyle,
+            setCellStyle,
           }}
         >
           <SnackbarContext.Provider value={show}>
             <Shell />
-            <DemoTime start={start} now={now} onPick={pick} />
+            <DemoTime
+              start={start}
+              now={now}
+              onPick={pick}
+              cellStyle={cellStyle}
+              onCellStyle={setCellStyle}
+            />
             <Snackbar snack={snack} onClose={() => setSnack(null)} />
           </SnackbarContext.Provider>
         </ProtoContext.Provider>
@@ -216,10 +238,13 @@ function Shell() {
  * (the block's fill moves into place), or slides in when opened from a list.
  */
 function ClassPanelHost() {
-  const { data, origin, setOrigin, looks } = useProto()
+  const { data, origin, setOrigin } = useProto()
   const { compact } = useWindowClass()
   const [key, , close] = useSheetParam('class')
   const c = findClass(data, key)
+  // Keep the last class while its panel closes (the URL has already moved on).
+  const [shown, setShown] = useState<Cls | null>(null)
+  if (c && c.key !== shown?.key) setShown(c)
   // Remember what had focus when the panel opened, to give it back on close.
   const [opener, setOpener] = useState<{ key: string | null; el: HTMLElement | null }>({
     key: null,
@@ -227,27 +252,39 @@ function ClassPanelHost() {
   })
   if (key !== opener.key)
     setOpener({ key, el: key ? (document.activeElement as HTMLElement | null) : opener.el })
-  const layoutId = !compact && c && origin === `wk-${c.key}` ? origin : undefined
-  const tone = c ? looks.get(shortOf(c.o))?.tone : undefined
-  const onClose = () => {
-    const el = opener.el
-    close()
-    window.setTimeout(() => {
-      el?.focus({ preventScroll: true })
-      setOrigin(null)
-    }, 450)
-  }
+  const giveBackFocus = () => opener.el?.focus({ preventScroll: true })
+
+  // Opened from a calendar cell on a wide window: the cell itself flies into the panel.
+  const lid = shown ? `wk-${shown.key}` : null
+  if (!compact && shown && lid && origin === lid)
+    return (
+      <CellPanel
+        key={shown.key}
+        c={shown}
+        lid={lid}
+        open={!!c}
+        onClose={close}
+        onDone={() => {
+          setOrigin(null)
+          giveBackFocus()
+        }}
+      />
+    )
+
+  // Otherwise: a sheet on the phone, a panel sliding in on wide windows.
+  const body = c ?? shown
   return (
     <Panel
       open={!!c}
-      onClose={onClose}
-      label={c ? c.o.subject : 'Class'}
+      onClose={() => {
+        close()
+        window.setTimeout(giveBackFocus, 300)
+      }}
+      label={body ? body.o.subject : 'Class'}
       wide={!compact}
-      layoutId={layoutId}
-      fromColor={tone ? themeColor(`--cx-${tone}-container`) : undefined}
       title="Class"
     >
-      {c && <ClassDetail c={c} />}
+      {body && <ClassDetail c={body} />}
     </Panel>
   )
 }
@@ -301,9 +338,13 @@ function DemoTime({
   start,
   now,
   onPick,
+  cellStyle,
+  onCellStyle,
 }: {
   start: number
   now: WallTime
+  cellStyle: CellStyle
+  onCellStyle: (s: CellStyle) => void
   onPick: (id: string) => void
 }) {
   const [open, setOpen] = useState(false)
@@ -346,6 +387,25 @@ function DemoTime({
             >
               <Icon name="close" size={20} />
             </button>
+          </div>
+          <div
+            className="mt-2 flex items-center gap-2 text-[12px]"
+            role="group"
+            aria-label="Cell style"
+          >
+            <span className="font-bold">Cell style</span>
+            {(['edge', 'raised'] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={cellStyle === v}
+                onClick={() => onCellStyle(v)}
+                className="min-h-8 rounded-lg px-2.5 hover:bg-black/10"
+                style={cellStyle === v ? { background: '#1d1a00', color: '#ffe169' } : undefined}
+              >
+                {v === 'edge' ? 'A: Edge' : 'B: Raised'}
+              </button>
+            ))}
           </div>
           <ul className={`mt-2 grid gap-0.5 ${compact ? 'grid-cols-2' : 'grid-cols-1'}`}>
             {scenarios.map((s) => {

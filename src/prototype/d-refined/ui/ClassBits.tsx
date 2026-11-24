@@ -72,7 +72,14 @@ export function ClassRow({ c, onOpen }: { c: Cls; onOpen: (c: Cls) => void }) {
 const reminders = new Set<string>()
 
 /** The class detail: live state, where it is (building, floor, directions), reminder, the course. */
-export function ClassDetail({ c }: { c: Cls }) {
+export function ClassDetail({
+  c,
+  headless = false,
+}: {
+  c: Cls
+  /** The panel already shows the class as its header (a cell that opened into the panel). */
+  headless?: boolean
+}) {
   const { data, now, looks, campus, account } = useProto()
   const href = useHref()
   const snack = useSnackbar()
@@ -97,20 +104,26 @@ export function ClassDetail({ c }: { c: Cls }) {
 
   return (
     <div className="pt-1">
-      <div className="flex items-center gap-3">
-        {look && (
-          <SubjectAvatar short={shortOf(c.o)} tone={look.tone} shape={look.shape} size={52} />
-        )}
-        <div className="flex flex-wrap gap-1.5">
-          <span className="cx-chip cx-chip--small">
-            <Icon name={KIND_ICON[kind]} size={14} />
-            {kindOf(c)}
-          </span>
-          {c.o.optional && <span className="cx-chip cx-chip--small">Optional</span>}
-        </div>
-      </div>
-      <h2 className="t-headline-s mt-3">{c.o.subject}</h2>
-      <p className={`t-title-m mt-1 ${isLive ? 'c-live' : 'c-muted'}`}>{live}</p>
+      {!headless && (
+        <>
+          <div className="flex items-center gap-3">
+            {look && (
+              <SubjectAvatar short={shortOf(c.o)} tone={look.tone} shape={look.shape} size={52} />
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              <span className="cx-chip cx-chip--small">
+                <Icon name={KIND_ICON[kind]} size={14} />
+                {kindOf(c)}
+              </span>
+              {c.o.optional && <span className="cx-chip cx-chip--small">Optional</span>}
+            </div>
+          </div>
+          <h2 className="t-headline-s mt-3">{c.o.subject}</h2>
+        </>
+      )}
+      <p className={`t-title-m ${headless ? '' : 'mt-1'} ${isLive ? 'c-live' : 'c-muted'}`}>
+        {live}
+      </p>
 
       <ul className="cx-list mt-5">
         <li className="cx-item">

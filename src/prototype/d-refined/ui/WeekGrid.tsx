@@ -1,10 +1,10 @@
 import { m } from 'motion/react'
-import type { CSSProperties } from 'react'
+import { startTransition } from 'react'
 import { addDays } from '../../clock'
-import { useProto, useSheetParam } from '../ctx'
+import { cellKind, cellVars } from '../cells'
+import { useProto } from '../ctx'
 import { Icon } from '../icons'
 import {
-  classKind,
   classLabel,
   dayClasses,
   DAY_END,
@@ -12,47 +12,24 @@ import {
   holidayOf,
   hhmm,
   KIND_ICON,
-  kindOf,
   longDate,
   phaseOf,
   shortOf,
   weekdayShort,
-  type ClassKind,
   type Cls,
 } from '../model'
 import { springs } from '../motion'
+import { CellText } from './Cell'
 import { ClassRow } from './ClassBits'
 import { SubjectAvatar } from './Shape'
 
 const HOURS = Array.from({ length: (DAY_END - DAY_START) / 60 + 1 }, (_, i) => DAY_START / 60 + i)
 
-/** The block's fill, tint and line for its subject (or neutral once it's over). */
-function blockVars(tone: string, past: boolean): CSSProperties {
-  return (
-    past
-      ? {
-          '--b-fill': 'var(--md-sys-color-surface-container-high)',
-          '--b-hatch':
-            'color-mix(in srgb, var(--md-sys-color-on-surface-variant) 12%, transparent)',
-          '--b-tint': 'var(--md-sys-color-surface-container)',
-          '--b-line': 'var(--md-sys-color-outline-variant)',
-          '--b-ink': 'var(--md-sys-color-on-surface-variant)',
-        }
-      : {
-          '--b-fill': `var(--cx-${tone}-container)`,
-          '--b-hatch': `color-mix(in srgb, var(--cx-${tone}-on-container) 16%, transparent)`,
-          '--b-tint': `color-mix(in srgb, var(--cx-${tone}-container) 38%, var(--md-sys-color-surface))`,
-          '--b-line': `var(--cx-${tone}-color)`,
-          '--b-ink': `var(--cx-${tone}-on-container)`,
-        }
-  ) as CSSProperties
-}
-
 /**
- * The week as a calendar grid. Each block carries its subject twice (colour and short name) and its
- * kind twice (a course is a solid fill, a lab is hatched, a seminar is outlined, and each has its
- * own mark), so neither depends on colour. Long room codes use Roboto Flex's condensed cut. On wide
- * windows a block expands into the class panel; one button per block, with a full label.
+ * The week as a calendar grid. Each cell carries its subject twice (colour and short name) and its
+ * kind twice (course versus lab or seminar by fill or elevation, plus each kind's own mark), so
+ * neither depends on colour. On wide windows the cells are shared elements: their text moves with
+ * them (between Today and Week, and into the class panel). One button per cell, with a full label.
  */
 export function WeekGrid({
   monday,
@@ -250,98 +227,56 @@ function Block({
   morph: boolean
   onOpen: (c: Cls) => void
 }) {
-  const { now, looks, origin, setOrigin } = useProto()
-  const [openKey] = useSheetParam('class')
+  const { now, looks, origin, setOrigin, cellStyle } = useProto()
   const phase = phaseOf(c, now.date, now.minutes)
   const past = phase === 'past'
-  const kind = classKind(c)
   const look = looks.get(shortOf(c.o))
   const lid = `wk-${c.key}`
-  // While this block's panel is open, the block itself is the panel: its fill has moved there.
-  const expanded = morph && openKey === c.key && origin === lid
+  // While its panel is open (and while it flies back), the cell's place stays empty: the cell
+  // itself is up there as the panel's header.
+  const lifted = morph && origin === lid
   const radius = compact ? 9 : 12
-  const long = (c.o.room?.length ?? 0) > 6
 
   return (
     <button
       type="button"
       aria-label={classLabel(c, phase, true)}
-      onClick={() => {
-        setOrigin(morph ? lid : null)
-        onOpen(c)
-      }}
+      onClick={() =>
+        // one commit for "the cell lifts off" and "the panel's flight starts": no empty frame
+        startTransition(() => {
+          setOrigin(morph ? lid : null)
+          onOpen(c)
+        })
+      }
       className="cx-blk-btn absolute inset-x-0 z-10 text-left"
-      style={{
-        top,
-        height,
-        borderRadius: radius,
-        boxShadow: phase === 'now' && !expanded ? '0 0 0 2px var(--cx-live)' : undefined,
-        ...blockVars(look?.tone ?? 's1', past),
-      }}
+      style={{ top, height, borderRadius: radius, ...cellVars(look?.tone ?? 's1', past) }}
     >
-      {!expanded && (
-        <m.span
-          layoutId={morph ? lid : undefined}
-          data-kind={kind}
-          className="cx-blk absolute inset-0"
-          style={{ borderRadius: radius }}
-          transition={springs.spatialDefault}
-        />
-      )}
-      <span
-        className="relative flex h-full flex-col overflow-hidden"
-        style={{
-          padding: compact ? '4px 5px' : '6px 8px',
-          color: 'var(--b-ink)',
-          opacity: expanded ? 0 : 1,
-        }}
+      <m.span
+        layoutId={morph ? lid : undefined}
+        data-cell={lid}
+        data-kind={cellKind(c)}
+        data-style={cellStyle}
+        data-now={phase === 'now'}
+        className="cx-blk absolute inset-0 overflow-hidden"
+        style={{ borderRadius: radius, opacity: lifted ? 0 : 1 }}
+        transition={springs.spatialDefault}
       >
-        <span className="flex items-start justify-between gap-1">
-          <span className="t-label-l t-e t-narrow block truncate" style={{ lineHeight: '18px' }}>
-            {shortOf(c.o)}
-          </span>
-          {!compact && <Icon name={KIND_ICON[kind]} size={16} className="mt-0.5 opacity-90" />}
-        </span>
-        <span
-          className="t-label-m block truncate font-medium"
-          // Long codes (OROLOGERIE) on the phone: Roboto Flex only narrows much at a display
-          // optical size, so ask for one; short codes keep the normal cut
-          style={
-            compact && long
-              ? {
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: 0,
-                  fontVariationSettings: "'wdth' 25, 'opsz' 40",
-                }
-              : { fontStretch: '78%' }
-          }
+        {/* `layout` keeps the text undistorted while its cell moves and resizes */}
+        <m.span
+          layout
+          className="absolute inset-0 flex flex-col"
+          style={{
+            padding: compact ? '4px 5px 4px 7px' : '6px 8px 6px 11px',
+            color: 'var(--b-ink)',
+          }}
+          transition={springs.spatialDefault}
         >
-          {c.o.room}
-        </span>
-        {!compact && height > 70 && (
-          <span className="t-label-s block truncate" style={{ opacity: 0.9 }}>
-            {kindOf(c)}, {hhmm(c.start)}
-          </span>
-        )}
-        {compact && height > 84 && (
-          <span className="t-label-s t-narrow block truncate" style={{ opacity: 0.9 }}>
-            {kindOf(c)}
-          </span>
-        )}
-        {compact && (
-          <Icon name={KIND_ICON[kind]} size={13} className="absolute right-1 bottom-1 opacity-90" />
-        )}
-      </span>
+          <CellText c={c} compact={compact} height={height} />
+        </m.span>
+      </m.span>
     </button>
   )
 }
-
-const KINDS: { kind: ClassKind; label: string; about: string }[] = [
-  { kind: 'course', label: 'Course', about: 'solid' },
-  { kind: 'lab', label: 'Lab', about: 'hatched' },
-  { kind: 'seminar', label: 'Seminar', about: 'outlined' },
-]
 
 /** Which subject is which (shape, colour, short and full name), and how each kind of class looks. */
 export function SubjectLegend({
@@ -351,7 +286,7 @@ export function SubjectLegend({
   dates: string[]
   columns?: 'auto' | 1
 }) {
-  const { data, looks } = useProto()
+  const { data, looks, cellStyle } = useProto()
   const seen = new Map<string, string>()
   for (const d of dates) for (const c of dayClasses(data, d)) seen.set(shortOf(c.o), c.o.subject)
   const items = [...seen.entries()].sort((a, b) => a[0].localeCompare(b[0]))
@@ -376,21 +311,38 @@ export function SubjectLegend({
           )
         })}
       </ul>
-      <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2" aria-label="Kinds of class">
-        {KINDS.map((k) => (
-          <li key={k.kind} className="t-body-m flex items-center gap-2">
+      <ul className="mt-4 flex flex-col gap-2" aria-label="Kinds of class">
+        {(['course', 'activity'] as const).map((k) => (
+          <li key={k} className="t-body-m flex items-center gap-3">
             <span
               aria-hidden="true"
-              className="relative h-6 w-9 overflow-hidden rounded-md"
-              style={blockVars('s4', false)}
+              className="relative h-7 w-11 flex-none"
+              style={cellVars('s4', false)}
             >
-              <span data-kind={k.kind} className="cx-blk absolute inset-0 rounded-md" />
-              <span className="absolute top-0.5 right-0.5" style={{ color: 'var(--b-ink)' }}>
-                <Icon name={KIND_ICON[k.kind]} size={12} />
+              <span
+                data-kind={k}
+                data-style={cellStyle}
+                className="cx-blk absolute inset-0 overflow-hidden"
+                style={{ borderRadius: 7 }}
+              />
+            </span>
+            <span className="flex items-center gap-1" style={{ color: 'var(--cx-s4-color)' }}>
+              {(k === 'course' ? ['course'] : ['lab', 'seminar']).map((x) => (
+                <Icon key={x} name={KIND_ICON[x as 'course' | 'lab' | 'seminar']} size={16} />
+              ))}
+            </span>
+            <span>
+              {k === 'course' ? 'Course' : 'Lab or seminar'}
+              <span className="c-muted">
+                {cellStyle === 'edge'
+                  ? k === 'course'
+                    ? ', solid'
+                    : ', tinted'
+                  : k === 'course'
+                    ? ', raised'
+                    : ', flat'}
               </span>
             </span>
-            {k.label}
-            <span className="c-muted">{k.about}</span>
           </li>
         ))}
       </ul>
