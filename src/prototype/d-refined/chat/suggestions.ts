@@ -1,5 +1,4 @@
 /** Questions to start from, per screen. The first one works everywhere. */
-import type { ChatMode } from './mode'
 
 const FIRST = 'What am I looking at, and how is it built?'
 
@@ -46,12 +45,6 @@ const EXAMINER: Record<string, string[]> = {
   ],
 }
 
-const COACH = [
-  'Explain how this screen gets its data, simply.',
-  'Drill me on this part of the system.',
-  'What would the TA ask me about this screen?',
-]
-
-export function suggestionsFor(screen: string, mode: ChatMode): string[] {
-  return [FIRST, ...(mode === 'coach' ? COACH : (EXAMINER[screen] ?? []))]
+export function suggestionsFor(screen: string): string[] {
+  return [FIRST, ...(EXAMINER[screen] ?? [])]
 }

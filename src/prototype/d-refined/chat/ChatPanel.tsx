@@ -1,8 +1,10 @@
 /**
  * The agent chat. Wide windows: a floating panel on the right that leaves the page usable (and
- * steps left of an open class panel when there is room), above the demo-time note's corner. Phone:
- * a full-height sheet that follows the finger from its handle, like D's sheets. Answers stream in.
- * The conversation lives here and survives closing the panel; "New chat" starts over.
+ * steps left of an open class panel when there is room), above the demo-time note's corner;
+ * expanded, it fills the window beside the navigation rail, with a readable column. Phone: a
+ * full-height sheet that follows the finger from its handle, like D's sheets; expanded, the whole
+ * screen. Answers stream in. The conversation lives here and survives closing the panel; "New chat"
+ * starts over. Expanded or not is remembered for the browser session.
  */
 import './chat.css'
 import { AnimatePresence, m, useDragControls, type PanInfo } from 'motion/react'
@@ -11,21 +13,20 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
   type KeyboardEvent,
 } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useProto, useWindowClass } from '../ctx'
+import { useProto, useReducedMotionPref, useWindowClass } from '../ctx'
 import { Icon } from '../icons'
 import { findClass } from '../model'
-import { springs } from '../motion'
-import { Segmented } from '../ui/Controls'
+import { fade, springs } from '../motion'
 import { ShapeBadge } from '../ui/Shape'
 import { ChatHttpError, streamChat } from './api'
 import { useWhere, type ChatContext } from './context'
 import type { ChatHealth } from './health'
 import { Markdown } from './markdown'
-import { launchMode, saveMode, type ChatMode } from './mode'
 import { suggestionsFor } from './suggestions'
 
 interface Msg {
@@ -66,6 +67,67 @@ function errorText(e: unknown, max: number): string {
   return 'Couldn’t reach the assistant. Check the connection and try again.'
 }
 
+const EXPANDED_KEY = 'cx-d-chat-expanded'
+
+function readExpanded(): boolean {
+  try {
+    return sessionStorage.getItem(EXPANDED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function writeExpanded(v: boolean) {
+  try {
+    sessionStorage.setItem(EXPANDED_KEY, v ? '1' : '0')
+  } catch {
+    // storage blocked: the choice lasts for this page only
+  }
+}
+
+const sizeNow = () => `${window.innerWidth}x${window.innerHeight}`
+
+/** The window size, re-read on resize (the expanded panel is sized in pixels so it can animate). */
+function useWindowSize(): { w: number; h: number } {
+  const key = useSyncExternalStore(
+    (cb) => {
+      window.addEventListener('resize', cb)
+      return () => window.removeEventListener('resize', cb)
+    },
+    sizeNow,
+    () => '0x0',
+  )
+  const [w, h] = key.split('x').map(Number)
+  return { w, h }
+}
+
+/** Expand / collapse: two diagonal arrows, outward or inward (24 px, like D's icons). */
+function ExpandIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <svg
+      width={22}
+      height={22}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {expanded ? (
+        <path d="M20 4l-6 6M14 5v5h5M4 20l6-6M10 19v-5H5" />
+      ) : (
+        <path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" />
+      )}
+    </svg>
+  )
+}
+
+/** The navigation rail on wide windows (theme.css `.cx-rail`); the expanded chat stays right of it. */
+const RAIL = 96
+
 export default function ChatPanel({
   open,
   onClose,
@@ -83,8 +145,9 @@ export default function ChatPanel({
   useEffect(() => {
     whereRef.current = where
   })
-  const coachAvailable = launchMode.unlocked && health.modes.includes('coach')
-  const [mode, setMode] = useState<ChatMode>(coachAvailable ? launchMode.mode : 'examiner')
+  const [big, setBig] = useState(readExpanded)
+  const reduced = useReducedMotionPref()
+  const { w: vw } = useWindowSize()
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [busy, setBusy] = useState(false)
   const [draft, setDraft] = useState('')
@@ -129,11 +192,11 @@ export default function ChatPanel({
     input.current?.focus({ preventScroll: true })
   }
 
-  const switchMode = (next: ChatMode) => {
-    if (next === mode) return
-    setMode(next)
-    saveMode(next)
-    newChat()
+  const toggleSize = () => {
+    setBig((b) => {
+      writeExpanded(!b)
+      return !b
+    })
   }
 
   const send = async (raw: string) => {
@@ -181,7 +244,7 @@ export default function ChatPanel({
       let ended = false
       try {
         await streamChat(
-          { mode, sessionId: sid, message: text, context },
+          { mode: 'examiner', sessionId: sid, message: text, context },
           (ev) => {
             if (epoch.current !== mine) return
             switch (ev.type) {
@@ -242,19 +305,29 @@ export default function ChatPanel({
   }
 
   const classOpen = !!findClass(data, new URLSearchParams(search).get('class'))
-  // Beside an open class panel (440 px + margins) when the window has room for both.
-  const right = classOpen && expanded ? 16 + 440 + 12 : 16
-  const suggestions = suggestionsFor(where.context.screen, mode)
+  const suggestions = suggestionsFor(where.context.screen)
   const empty = msgs.length === 0
+  // Wide geometry in pixels, so Motion can spring between the two sizes. Collapsed: beside an open
+  // class panel (440 px + margins) when the window has room for both, and above the demo-time note.
+  const geometry = big
+    ? { top: 16, bottom: 16, right: 16, width: Math.max(320, vw - RAIL - 32) }
+    : {
+        top: 16,
+        bottom: 68,
+        right: classOpen && expanded ? 16 + 440 + 12 : 16,
+        width: Math.min(420, vw - 32),
+      }
+  // Reduced motion: the size and place change at once, only the opacity fades.
+  const move = reduced ? { default: { duration: 0 }, opacity: fade } : springs.spatialDefault
+  /** In the expanded panel the conversation keeps a readable line length, centred. */
+  const col = big && !compact ? 'mx-auto w-full max-w-[72ch]' : ''
 
   const body = (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-1 pt-3 pr-2 pb-1 pl-5">
         <div className="min-w-0 flex-1">
           <p className="t-title-m">Ask about CampusPulse</p>
-          <p className="t-label-m c-muted truncate">
-            {mode === 'coach' ? 'Coach mode' : 'Examiner mode'} · answers from the code
-          </p>
+          <p className="t-label-m c-muted truncate">Answers from the code</p>
         </div>
         <button
           type="button"
@@ -269,6 +342,16 @@ export default function ChatPanel({
         <button
           type="button"
           className="cx-icon-btn cx-state"
+          aria-label={big ? 'Collapse the chat' : 'Expand the chat'}
+          title={big ? 'Collapse' : 'Expand'}
+          aria-expanded={big}
+          onClick={toggleSize}
+        >
+          <ExpandIcon expanded={big} />
+        </button>
+        <button
+          type="button"
+          className="cx-icon-btn cx-state"
           aria-label="Close the chat"
           title="Close"
           onClick={onClose}
@@ -276,20 +359,6 @@ export default function ChatPanel({
           <Icon name="close" />
         </button>
       </div>
-      {coachAvailable && (
-        <div className="px-4 pt-1 pb-1">
-          <Segmented<ChatMode>
-            small
-            label="Chat mode"
-            value={mode}
-            onChange={switchMode}
-            options={[
-              { value: 'examiner', label: 'Examiner' },
-              { value: 'coach', label: 'Coach' },
-            ]}
-          />
-        </div>
-      )}
       <p className="t-label-m c-muted flex items-center gap-1.5 px-5 pt-1 pb-2" title={where.label}>
         <Icon name="visibility" size={16} />
         <span className="truncate">Looking at: {where.label}</span>
@@ -303,14 +372,16 @@ export default function ChatPanel({
           pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
         }}
       >
-        {empty ? (
-          <Intro mode={mode} suggestions={suggestions} onPick={(q) => void send(q)} />
-        ) : (
-          msgs.map((msg) => <Message key={msg.id} msg={msg} />)
-        )}
+        <div className={`flex flex-col gap-4 ${col}`}>
+          {empty ? (
+            <Intro suggestions={suggestions} onPick={(q) => void send(q)} />
+          ) : (
+            msgs.map((msg) => <Message key={msg.id} msg={msg} />)
+          )}
+        </div>
       </div>
 
-      <div className="px-3 pb-3">
+      <div className={`px-3 pb-3 ${col}`}>
         {!empty && !busy && (
           <div className="cx-chat-chips -mx-3 flex gap-2 overflow-x-auto px-3 pb-2">
             {suggestions.map((q) => (
@@ -394,28 +465,32 @@ export default function ChatPanel({
               aria-modal="true"
               aria-label="Ask about CampusPulse"
               className="cx-chat--sheet fixed inset-x-0 flex flex-col"
-              style={{
-                top: 'calc(8px + env(safe-area-inset-top))',
-                bottom: -48,
-                paddingBottom: 48,
-                zIndex: 60,
-              }}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
+              style={{ bottom: -48, paddingBottom: 48, zIndex: 60 }}
+              initial={{ y: '100%', top: big ? 0 : 8 }}
+              animate={{ y: 0, top: big ? 0 : 8 }}
               exit={{ y: '100%', transition: springs.effectsDefault }}
-              transition={springs.spatialDefault}
-              drag="y"
+              transition={move}
+              drag={big ? false : 'y'}
               dragControls={drag}
               dragListener={false}
               dragConstraints={{ top: 0, bottom: 0 }}
               dragElastic={{ top: 0.04, bottom: 0.9 }}
               onDragEnd={onDragEnd}
             >
-              <div className="cx-chat-surface" />
-              <div
-                className="relative grid flex-none cursor-grab touch-none place-items-center select-none"
-                style={{ height: 22 }}
+              <m.div
+                className="cx-chat-surface"
+                initial={false}
+                animate={{ borderTopLeftRadius: big ? 0 : 28, borderTopRightRadius: big ? 0 : 28 }}
+                transition={move}
+              />
+              <m.div
+                className="relative grid flex-none cursor-grab touch-none place-items-center overflow-hidden select-none"
+                initial={false}
+                animate={{ height: big ? 0 : 22, opacity: big ? 0 : 1 }}
+                transition={move}
+                aria-hidden={big}
                 onPointerDown={(e) => {
+                  if (big) return
                   e.preventDefault()
                   drag.start(e)
                 }}
@@ -424,10 +499,13 @@ export default function ChatPanel({
                   className="mt-2 block h-1 w-8 rounded-full"
                   style={{ background: 'var(--md-sys-color-on-surface-variant)' }}
                 />
-              </div>
+              </m.div>
               <div
                 className="relative flex min-h-0 flex-1 flex-col"
-                style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+                style={{
+                  paddingTop: big ? 'env(safe-area-inset-top)' : undefined,
+                  paddingBottom: 'env(safe-area-inset-bottom)',
+                }}
               >
                 {body}
               </div>
@@ -438,19 +516,13 @@ export default function ChatPanel({
             key="panel"
             role="dialog"
             aria-label="Ask about CampusPulse"
-            className="cx-chat fixed z-50 flex flex-col"
-            style={{
-              top: 16,
-              bottom: 68,
-              right,
-              width: 'min(420px, calc(100vw - 32px))',
-              transition:
-                'right var(--cx-motion-spatial-default-duration) var(--cx-motion-spatial-default)',
-            }}
-            initial={{ x: 48, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+            className="cx-chat fixed flex flex-col"
+            // Expanded, it covers the demo-time note (z 50); collapsed, the note stays on top.
+            style={{ zIndex: big ? 60 : 50 }}
+            initial={{ x: 48, opacity: 0, ...geometry }}
+            animate={{ x: 0, opacity: 1, ...geometry }}
             exit={{ x: 48, opacity: 0, transition: springs.effectsFast }}
-            transition={springs.spatialDefault}
+            transition={move}
             onKeyDown={onKeyDown}
           >
             <div className="cx-chat-surface" />
@@ -461,15 +533,7 @@ export default function ChatPanel({
   )
 }
 
-function Intro({
-  mode,
-  suggestions,
-  onPick,
-}: {
-  mode: ChatMode
-  suggestions: string[]
-  onPick: (q: string) => void
-}) {
+function Intro({ suggestions, onPick }: { suggestions: string[]; onPick: (q: string) => void }) {
   return (
     <m.div
       className="flex flex-col gap-3 pt-2"
@@ -482,13 +546,11 @@ function Intro({
           <Icon name="forum" size={26} />
         </span>
       </ShapeBadge>
-      <p className="t-title-l">
-        {mode === 'coach' ? 'Rehearse with the coach' : 'Ask about what you see'}
-      </p>
+      <p className="t-title-l">Ask about what you see</p>
       <p className="t-body-m c-muted">
-        {mode === 'coach'
-          ? 'It knows the talk, the drill questions and the code. Ask it to explain a part, drill you or check how you would say something.'
-          : 'An AI agent that has read CampusPulse’s three repositories and its architecture notes. It knows which screen you are on, answers from the code and points to the lines. It can only read: it changes and runs nothing.'}
+        An AI agent that has read CampusPulse’s three repositories and its architecture notes. It
+        knows which screen you are on, answers from the code and points to the lines. It can only
+        read: it changes and runs nothing.
       </p>
       <div className="mt-1 flex flex-col gap-2">
         {suggestions.map((q) => (

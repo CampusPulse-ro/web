@@ -4,7 +4,6 @@
  * EventSource can't POST, so the stream is read from fetch().
  */
 import type { ChatContext } from './context'
-import type { ChatMode } from './mode'
 
 export type ChatEvent =
   | { type: 'start'; sessionId: string; mode: string }
@@ -27,7 +26,8 @@ export class ChatHttpError extends Error {
 }
 
 export interface ChatRequest {
-  mode: ChatMode
+  /** The only mode the backend serves. */
+  mode: 'examiner'
   sessionId: string | null
   message: string
   context: ChatContext

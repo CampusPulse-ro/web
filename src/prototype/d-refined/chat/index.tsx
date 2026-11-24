@@ -10,8 +10,6 @@ import { useWindowClass } from '../ctx'
 import { Icon } from '../icons'
 import { springs } from '../motion'
 import { useChatHealth } from './health'
-// Read `?chat=coach` now, while the URL still has it (the prototype's links drop it).
-import './mode'
 
 const ChatPanel = lazy(() => import('./ChatPanel'))
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
 export interface ChatHealth {
-  modes: string[]
   maxMessageChars: number
 }
 
@@ -24,9 +23,6 @@ export function useChatHealth(): ChatHealth | null {
         const b = (await r.json()) as Record<string, unknown>
         if (b.service !== 'campuspulse-examiner' || b.ok !== true) return
         setHealth({
-          modes: Array.isArray(b.modes)
-            ? b.modes.filter((x): x is string => typeof x === 'string')
-            : ['examiner'],
           maxMessageChars: typeof b.maxMessageChars === 'number' ? b.maxMessageChars : 4000,
         })
       })
