@@ -23,9 +23,10 @@ import { Icon } from '../icons'
 import { findClass } from '../model'
 import { fade, springs } from '../motion'
 import { ShapeBadge } from '../ui/Shape'
-import { ChatHttpError, streamChat } from './api'
-import { useWhere, type ChatContext } from './context'
+import { ChatHttpError, loadSession, streamChat } from './api'
+import { labelOf, useWhere, type ChatContext } from './context'
 import type { ChatHealth } from './health'
+import { History } from './History'
 import { Markdown } from './markdown'
 import { suggestionsFor } from './suggestions'
 
@@ -152,6 +153,12 @@ export default function ChatPanel({
   const [busy, setBusy] = useState(false)
   const [draft, setDraft] = useState('')
   const session = useRef<string | null>(null)
+  /** The same id, for rendering (the history marks the current chat). */
+  const [current, setCurrent] = useState<string | null>(null)
+  const setSession = (id: string | null) => {
+    session.current = id
+    setCurrent(id)
+  }
   const epoch = useRef(0)
   const abort = useRef<AbortController | null>(null)
   const nextId = useRef(1)
@@ -159,6 +166,8 @@ export default function ChatPanel({
   const log = useRef<HTMLDivElement>(null)
   const pinned = useRef(true)
   const drag = useDragControls()
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const historyBtn = useRef<HTMLButtonElement>(null)
 
   // Focus the question box when the panel opens.
   useEffect(() => {
@@ -185,11 +194,56 @@ export default function ChatPanel({
     epoch.current++
     abort.current?.abort()
     abort.current = null
-    session.current = null
+    setSession(null)
     setMsgs([])
     setBusy(false)
     pinned.current = true
     input.current?.focus({ preventScroll: true })
+  }
+
+  const closeHistory = () => {
+    setHistoryOpen(false)
+    window.setTimeout(() => historyBtn.current?.focus({ preventScroll: true }), 30)
+  }
+
+  /** Puts an earlier chat in the panel; the next question resumes its session. */
+  const openSession = async (id: string) => {
+    const chat = await loadSession(id)
+    epoch.current++
+    abort.current?.abort()
+    abort.current = null
+    setSession(chat.id)
+    const loaded: Msg[] = []
+    for (const t of chat.turns) {
+      let where = t.where ?? undefined
+      if (t.context)
+        try {
+          where = labelOf(t.context)
+        } catch {
+          // an old or partial context: keep the server's label
+        }
+      loaded.push({ id: nextId.current++, role: 'user', text: t.question, where })
+      loaded.push(
+        t.status === 'ok'
+          ? { id: nextId.current++, role: 'assistant', text: t.answer, status: 'done' }
+          : {
+              id: nextId.current++,
+              role: 'assistant',
+              text: t.answer,
+              status: 'error',
+              error:
+                t.error ||
+                (t.status === 'timeout'
+                  ? 'The answer took too long and was stopped.'
+                  : 'The assistant stopped with an error.'),
+            },
+      )
+    }
+    setMsgs(loaded)
+    setBusy(false)
+    pinned.current = true
+    setHistoryOpen(false)
+    window.setTimeout(() => input.current?.focus({ preventScroll: true }), 30)
   }
 
   const toggleSize = () => {
@@ -249,7 +303,7 @@ export default function ChatPanel({
             if (epoch.current !== mine) return
             switch (ev.type) {
               case 'start':
-                if (ev.sessionId) session.current = ev.sessionId
+                if (ev.sessionId) setSession(ev.sessionId)
                 break
               case 'delta':
                 patch((x) => ({ text: x.text + ev.text, tool: undefined }))
@@ -259,7 +313,7 @@ export default function ChatPanel({
                 break
               case 'done':
                 ended = true
-                if (ev.sessionId) session.current = ev.sessionId
+                if (ev.sessionId) setSession(ev.sessionId)
                 patch(() => ({ status: 'done', tool: undefined }))
                 break
               case 'error':
@@ -283,7 +337,7 @@ export default function ChatPanel({
       } catch (e) {
         if (ctl.signal.aborted || epoch.current !== mine) return
         if (e instanceof ChatHttpError && e.code === 'unknown_session' && !retried) {
-          session.current = null
+          setSession(null)
           patch(() => ({ tool: 'That chat had expired, so a new one started' }))
           return run(null, true)
         }
@@ -321,8 +375,10 @@ export default function ChatPanel({
   const move = reduced ? { default: { duration: 0 }, opacity: fade } : springs.spatialDefault
   /** In the expanded panel the conversation keeps a readable line length, centred. */
   const col = big && !compact ? 'mx-auto w-full max-w-[72ch]' : ''
+  // History: a popover under its button in the expanded wide panel, else a view filling the panel.
+  const popover = big && !compact
 
-  const body = (
+  const chat = (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-1 pt-3 pr-2 pb-1 pl-5">
         <div className="min-w-0 flex-1">
@@ -339,6 +395,23 @@ export default function ChatPanel({
         >
           <Icon name="edit" size={22} />
         </button>
+        <div className="relative">
+          <button
+            ref={historyBtn}
+            type="button"
+            className="cx-icon-btn cx-state"
+            aria-label="Chat history"
+            title={busy ? 'Chat history (when the answer is done)' : 'Chat history'}
+            aria-expanded={historyOpen}
+            disabled={busy}
+            onClick={() => (historyOpen ? closeHistory() : setHistoryOpen(true))}
+          >
+            <Icon name="history" size={22} />
+          </button>
+          {historyOpen && popover && (
+            <History popover currentId={current} onPick={openSession} onBack={closeHistory} />
+          )}
+        </div>
         <button
           type="button"
           className="cx-icon-btn cx-state"
@@ -432,12 +505,20 @@ export default function ChatPanel({
     </div>
   )
 
+  const body =
+    historyOpen && !popover ? (
+      <History popover={false} currentId={current} onPick={openSession} onBack={closeHistory} />
+    ) : (
+      chat
+    )
+
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key !== 'Escape') return
-    // Only the chat closes: an open class panel behind it stays.
+    // Escape closes the history first; then only the chat (an open class panel behind it stays).
     e.preventDefault()
     e.stopPropagation()
-    onClose()
+    if (historyOpen) closeHistory()
+    else onClose()
   }
 
   const onDragEnd = (_: unknown, info: PanInfo) => {

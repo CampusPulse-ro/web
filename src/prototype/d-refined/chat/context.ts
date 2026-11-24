@@ -63,7 +63,6 @@ export function useWhere(): Where {
   const rel = pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname
   const [first = '', second] = rel.split('/').filter(Boolean).map(decode)
   let screen = SCREENS[first] ?? (rel || 'Today')
-  let detail = ''
   const selection: NonNullable<ChatContext['selection']> = {}
 
   if (first === 'deadlines') {
@@ -83,7 +82,6 @@ export function useWhere(): Where {
         due: wallText(d.dueAt),
         status: statusLine(d),
       }
-      if (second || !compact) detail = d.name
     }
   }
 
@@ -91,7 +89,6 @@ export function useWhere(): Where {
     screen = 'Course detail'
     const o = data.timetable.occurrences.find((x) => shortOf(x) === second)
     selection.course = { name: o?.subject ?? second, code: second }
-    detail = o?.subject ?? second
   }
 
   const c = findClass(data, q.get('class'))
@@ -106,9 +103,6 @@ export function useWhere(): Where {
       room: c.o.room ?? undefined,
       teacher: c.o.teacher ?? undefined,
     }
-    detail = `${c.o.subject}, ${kindOf(c)}, ${hhmm(c.start)}–${hhmm(c.end)}`
-  } else if (first === '' && q.get('day')) {
-    detail = longDate(q.get('day')!)
   }
 
   const at = q.get('at')
@@ -116,18 +110,43 @@ export function useWhere(): Where {
   const scenario = picked?.id ?? (at ? undefined : defaultScenario.id)
   const time = `${now.date}T${hhmm(now.minutes)}`
 
-  return {
-    context: {
-      route: `${pathname}${search}`,
-      screen,
-      ...(Object.keys(selection).length ? { selection } : {}),
-      demoTime: { now: time, ...(scenario ? { scenario } : {}) },
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        layout: compact ? 'phone' : 'web',
-      },
+  const context: ChatContext = {
+    route: `${pathname}${search}`,
+    screen,
+    ...(Object.keys(selection).length ? { selection } : {}),
+    demoTime: { now: time, ...(scenario ? { scenario } : {}) },
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      layout: compact ? 'phone' : 'web',
     },
-    label: `${screen}${detail ? ` · ${detail}` : ''} · ${wallText(time)}`,
   }
+  return { context, label: labelOf(context) }
+}
+
+/**
+ * The short line for a context: "Class detail · Data Mining, Lab, 14:00–16:00 · Tue 24 Nov 14:41".
+ * Also used for the turns of an earlier chat, whose context comes back from the server.
+ */
+export function labelOf(c: ChatContext): string {
+  const s = c.selection
+  let detail = ''
+  if (s?.class)
+    detail = [
+      s.class.subject,
+      s.class.kind,
+      s.class.start && s.class.end ? `${s.class.start}–${s.class.end}` : '',
+    ]
+      .filter(Boolean)
+      .join(', ')
+  else if (s?.deadline) detail = s.deadline.title
+  else if (s?.course) detail = s.course.name
+  else if (c.screen === 'Today') {
+    const day = new URLSearchParams(c.route.split('?')[1] ?? '').get('day')
+    if (day && /^\d{4}-\d{2}-\d{2}$/.test(day)) detail = longDate(day)
+  }
+  const now = c.demoTime?.now ?? ''
+  return [c.screen, detail, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(now) ? wallText(now) : '']
+    .filter(Boolean)
+    .join(' · ')
 }

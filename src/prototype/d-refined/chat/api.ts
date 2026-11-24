@@ -129,3 +129,82 @@ export async function streamChat(
   const last = parseBlock(buf)
   if (last) onEvent(last)
 }
+
+/* ── History: this browser's earlier chats (the server keys them by client) ─────────────────── */
+
+export interface SessionSummary {
+  id: string
+  createdAt: string
+  lastActivity: string
+  firstQuestion: string
+  turns: number
+}
+
+export interface SessionTurn {
+  question: string
+  answer: string
+  askedAt: string
+  /** The server's short label for where it was asked (old turns have no raw context). */
+  where: string | null
+  context: ChatContext | null
+  status: 'ok' | 'failed' | 'timeout'
+  error: string | null
+}
+
+export interface SessionDetail {
+  id: string
+  createdAt: string
+  turns: SessionTurn[]
+}
+
+const obj = (v: unknown): Record<string, unknown> =>
+  v && typeof v === 'object' ? (v as Record<string, unknown>) : {}
+
+async function getJson(url: string, signal?: AbortSignal): Promise<Record<string, unknown>> {
+  const res = await fetch(url, {
+    headers: { accept: 'application/json' },
+    cache: 'no-store',
+    signal,
+  })
+  if (!res.ok) throw await refusal(res)
+  if (!(res.headers.get('content-type') ?? '').includes('application/json'))
+    throw new ChatHttpError(res.status, 'bad_response', 'The server sent an unexpected answer.')
+  return obj(await res.json())
+}
+
+/** Newest first, as the server sends them. */
+export async function listSessions(signal?: AbortSignal): Promise<SessionSummary[]> {
+  const body = await getJson('/api/sessions', signal)
+  const rows = Array.isArray(body.sessions) ? body.sessions : []
+  return rows
+    .map(obj)
+    .filter((r) => str(r.id))
+    .map((r) => ({
+      id: str(r.id),
+      createdAt: str(r.createdAt),
+      lastActivity: str(r.lastActivity),
+      firstQuestion: str(r.firstQuestion),
+      turns: typeof r.turns === 'number' ? r.turns : 0,
+    }))
+}
+
+export async function loadSession(id: string, signal?: AbortSignal): Promise<SessionDetail> {
+  const body = await getJson(`/api/sessions/${encodeURIComponent(id)}`, signal)
+  const turns = Array.isArray(body.turns) ? body.turns : []
+  return {
+    id: str(body.id) || id,
+    createdAt: str(body.createdAt),
+    turns: turns.map(obj).map((t) => {
+      const status = str(t.status)
+      return {
+        question: str(t.question),
+        answer: str(t.answer),
+        askedAt: str(t.askedAt),
+        where: str(t.where) || null,
+        context: t.context && typeof t.context === 'object' ? (t.context as ChatContext) : null,
+        status: status === 'failed' || status === 'timeout' ? status : 'ok',
+        error: str(t.error) || null,
+      }
+    }),
+  }
+}
