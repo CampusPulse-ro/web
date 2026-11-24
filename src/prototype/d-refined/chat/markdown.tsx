@@ -10,6 +10,8 @@ const ORG = 'https://github.com/CampusPulse-ro'
 const ROOTS = '(?:api|mobile|web|web-prototype)'
 const POINTER = new RegExp(`^(${ROOTS.slice(3, -1)})/([^\\s:\`'"<>]+?)(?::(\\d+)(?:-(\\d+))?)?$`)
 const LINES_ONLY = /^:(\d+)(?:-(\d+))?$/
+/** `ClassBits.tsx:97-103`: a file named without its folder, plus optional lines. */
+const BARE_FILE = /^([A-Za-z0-9_.@-]+\.[A-Za-z0-9]+)(?::(\d+)(?:-(\d+))?)?$/
 /** Pointers in running text: no spaces or brackets, a file extension, optional lines. */
 const TEXT_POINTER = new RegExp(
   `(?<![\\w./-])${ROOTS}/[A-Za-z0-9_.@/-]+\\.[A-Za-z0-9]+(?::\\d+(?:-\\d+)?)?`,
@@ -51,7 +53,15 @@ function safeUrl(url: string): string | null {
 
 interface Ctx {
   last: Target | null
+  /** Files already cited in full in this answer, so a later bare `File.tsx:12` can link. */
+  seen: Target[]
   n: number
+}
+
+function remember(ctx: Ctx, t: Target) {
+  ctx.last = t
+  if (!ctx.seen.some((x) => x.repo === t.repo && x.ref === t.ref && x.path === t.path))
+    ctx.seen.push(t)
 }
 
 const ext = { target: '_blank', rel: 'noopener noreferrer' } as const
@@ -60,7 +70,7 @@ function codeSpan(code: string, ctx: Ctx): ReactNode {
   const k = ctx.n++
   const p = pointerLink(code)
   if (p) {
-    ctx.last = p.target
+    remember(ctx, p.target)
     return (
       <a key={k} href={p.url} {...ext} className="cx-chat-ptr">
         <code>{code}</code>
@@ -74,6 +84,17 @@ function codeSpan(code: string, ctx: Ctx): ReactNode {
         <code>{code}</code>
       </a>
     )
+  // Only a name that matches exactly one file cited earlier: never a guess between two.
+  const bare = BARE_FILE.exec(code.trim())
+  const same = bare ? ctx.seen.filter((t) => t.path.split('/').pop() === bare[1]) : []
+  if (bare && same.length === 1) {
+    ctx.last = same[0]
+    return (
+      <a key={k} href={githubUrl(same[0], bare[2], bare[3])} {...ext} className="cx-chat-ptr">
+        <code>{code}</code>
+      </a>
+    )
+  }
   return <code key={k}>{code}</code>
 }
 
@@ -89,7 +110,7 @@ function plain(text: string, ctx: Ctx): ReactNode[] {
       node: () => {
         const p = pointerLink(raw)
         if (!p) return raw
-        ctx.last = p.target
+        remember(ctx, p.target)
         return (
           <a key={ctx.n++} href={p.url} {...ext} className="cx-chat-ptr">
             {raw}
@@ -376,6 +397,6 @@ function block(b: Block, ctx: Ctx): ReactNode {
 }
 
 export function Markdown({ text }: { text: string }) {
-  const ctx: Ctx = { last: null, n: 0 }
+  const ctx: Ctx = { last: null, seen: [], n: 0 }
   return <div className="cx-chat-md">{parse(text).map((b) => block(b, ctx))}</div>
 }

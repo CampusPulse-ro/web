@@ -380,8 +380,9 @@ export default function ChatPanel({
           <div key="sheet" onKeyDown={onKeyDown}>
             <m.div
               aria-hidden="true"
-              className="fixed inset-0 z-50"
-              style={{ background: 'var(--md-sys-color-scrim)' }}
+              className="fixed inset-0"
+              // Above the demo-time note too: on the phone the sheet takes the whole screen.
+              style={{ background: 'var(--md-sys-color-scrim)', zIndex: 60 }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.45 }}
               exit={{ opacity: 0 }}
@@ -392,11 +393,12 @@ export default function ChatPanel({
               role="dialog"
               aria-modal="true"
               aria-label="Ask about CampusPulse"
-              className="cx-chat--sheet fixed inset-x-0 z-50 flex flex-col"
+              className="cx-chat--sheet fixed inset-x-0 flex flex-col"
               style={{
                 top: 'calc(8px + env(safe-area-inset-top))',
                 bottom: -48,
                 paddingBottom: 48,
+                zIndex: 60,
               }}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
